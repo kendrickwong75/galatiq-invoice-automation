@@ -1,0 +1,29 @@
+{
+  "_comment": "Scripted Grok extraction output for the offline mock provider.",
+  "attempts": [
+    {
+      "invoice_number": "1002",
+      "vendor": "Gadgets Co.",
+      "vendor_address": null,
+      "invoice_date": "Jan 30 2026",
+      "due_date": "2026-01-30",
+      "currency": "USD",
+      "line_items": [
+        {
+          "item": "GadgetX",
+          "quantity": 20,
+          "unit_price": 750.0,
+          "amount": null,
+          "note": null
+        }
+      ],
+      "subtotal": null,
+      "tax_rate": null,
+      "tax_amount": null,
+      "other_charges": [],
+      "total": 15000.0,
+      "payment_terms": "Net 30",
+      "notes": null
+    }
+  ]
+}

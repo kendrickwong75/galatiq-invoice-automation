@@ -1,0 +1,406 @@
+LLM: grok (grok-4.7)  ·  DB: output\grok\inventory.db  ·  audit: output\grok\audit.jsonl
+Paid 5000.0 to Widgets Inc.
+┌────────────────────────────────────────────────────── invoice_1001.txt ───────────────────────────────────────────────────────┐
+│ Vendor     Widgets Inc.                                                                                                       │
+│ Invoice #  INV-1001                                                                                                           │
+│ Dates      issued 2026-01-15  ·  due 2026-02-01                                                                               │
+│ Amount     $5,000.00                                                                                                          │
+│ Items      WidgetA ×10, WidgetB ×5                                                                                            │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  34797 ms                                       │
+│                                                                                                                               │
+│ INV-1001 from Widgets Inc. for $5,000.00 USD is approved. Required fields are present, WidgetA (10 of 15 in stock) and        │
+│ WidgetB (5 of 10 in stock) are known catalog items, and line amounts, subtotal, tax, and total recompute to $5,000.00 with no │
+│ mismatch. Unit prices are within 10% of catalog, currency is USD, and there is no paid or pending duplicate for widgets|1001. │
+│ The amount is below the $10,000 VP-review threshold and there are no risk or fraud flags.                                     │
+│ Payment PAY-88E117EE0C9E: $5,000.00 sent to Widgets Inc.                                                                      │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1002.txt ───────────────────────────────────────────────────────┐
+│ Vendor     Gadgets Co.                                                                                                        │
+│ Invoice #  1002                                                                                                               │
+│ Dates      issued 2026-01-30  ·  due 2026-01-30                                                                               │
+│ Amount     $15,000.00  VP review (> $10K)                                                                                     │
+│ Items      GadgetX ×20                                                                                                        │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  40106 ms                                       │
+│                                                                                                                               │
+│  REJECT  STOCK_EXCEEDED         'GadgetX': 20 units billed, only 5 in stock.                                                  │
+│  FLAG    DUE_DATE_INCONSISTENT  Due on the invoice date despite 'Net 30' terms.                                               │
+│                                                                                                                               │
+│ Invoice 1002 from Gadgets Co. is rejected. It bills 20 units of GadgetX at $750 each for a total of $15,000 USD, but only 5   │
+│ units are in stock. Company policy requires rejection when billed quantity exceeds available stock. The amount is also above  │
+│ the $10,000 VP review threshold, and the due date of 2026-01-30 matches the invoice date despite Net 30 terms. Those points   │
+│ do not change the rejection. Arithmetic checks out (20 × $750 = $15,000), and there is no duplicate or strong fraud signal.   │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1003.txt ───────────────────────────────────────────────────────┐
+│ Vendor     Fraudster LLC                                                                                                      │
+│ Invoice #  INV-1003                                                                                                           │
+│ Dates      issued 2026-01-20  ·  due yesterday                                                                                │
+│ Amount     $100,000.00  VP review (> $10K)                                                                                    │
+│ Items      FakeItem ×100                                                                                                      │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  56784 ms                                       │
+│                                                                                                                               │
+│  REJECT  OUT_OF_STOCK  'FakeItem' has zero stock but 100 units are billed.                                                    │
+│  FLAG    FRAUD_SIGNAL  Pressure language: 'URGENT'.                                                                           │
+│  FLAG    FRAUD_SIGNAL  Requests payment via 'Wire transfer'.                                                                  │
+│  FLAG    FRAUD_SIGNAL  Vendor name 'Fraudster LLC' contains 'Fraud'.                                                          │
+│  FLAG    FRAUD_SIGNAL  Due date 'yesterday' is not a calendar date.                                                           │
+│                                                                                                                               │
+│ Invoice INV-1003 from Fraudster LLC for $100,000.00 USD is rejected. FakeItem is billed for 100 units at $1,000.00 each, but  │
+│ inventory shows zero units in stock (OUT_OF_STOCK). Four strong fraud signals also independently require rejection: pressure  │
+│ language (“URGENT - Pay immediately to avoid penalties!!!”), a request for wire transfer, a vendor name containing “Fraud,”   │
+│ and a due date of “yesterday,” which is not a calendar date. The amount is well above the $10,000 VP-review threshold, but    │
+│ the blocking stock finding and fraud signals already require rejection rather than review. Do not pay.                        │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+Paid 1890.0 to Precision Parts Ltd.
+┌────────────────────────────────────────────────────── invoice_1004.json ──────────────────────────────────────────────────────┐
+│ Vendor     Precision Parts Ltd.                                                                                               │
+│ Invoice #  INV-1004                                                                                                           │
+│ Dates      issued 2026-01-22  ·  due 2026-02-22                                                                               │
+│ Amount     $1,890.00                                                                                                          │
+│ Items      WidgetA ×3, WidgetB ×2                                                                                             │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  20264 ms                             │
+│                                                                                                                               │
+│ INV-1004 from Precision Parts Ltd. is approved for payment of $1,890.00 USD. Required fields are present, WidgetA (3 units,   │
+│ 15 in stock) and WidgetB (2 units, 10 in stock) are known catalog items with sufficient stock, and line amounts recompute to  │
+│ a $1,750.00 subtotal, $140.00 tax, and $1,890.00 total with no arithmetic mismatch. There is no paid or pending duplicate for │
+│ dedupe key precisionparts|1004, currency is USD, unit prices are within catalog tolerance, and the amount is below the        │
+│ $10,000 VP-review threshold with no fraud or risk flags.                                                                      │
+│ Payment PAY-44EE3423503A: $1,890.00 sent to Precision Parts Ltd.                                                              │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────── invoice_1004_revised.json ──────────────────────────────────────────────────┐
+│ Vendor     Precision Parts Ltd.                                                                                               │
+│ Invoice #  INV-1004                                                                                                           │
+│ Dates      issued 2026-01-22  ·  due 2026-02-22                                                                               │
+│ Amount     $5,940.00                                                                                                          │
+│ Items      WidgetA ×3, WidgetB ×2, GadgetX ×5                                                                                 │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  38238 ms                             │
+│                                                                                                                               │
+│  REVIEW  DUPLICATE  Revised version of INV-1004 from invoice_1004.json, which is already paid.                                │
+│                                                                                                                               │
+│ INV-1004 from Precision Parts Ltd. is a revised version of invoice_1004.json, which is already paid under PAY-44EE3423503A.   │
+│ The paid copy totaled $1,890.00 and did not include GadgetX; this revision keeps WidgetA × 3 and WidgetB × 2 and adds GadgetX │
+│ × 5 at $750.00 each, raising the total to $5,940.00 (delta +$4,050.00, of which $3,750.00 is the new line and $300.00 is 8%   │
+│ tax on that line). Arithmetic, stock, and catalog prices check out, the currency is USD, and the amount is below the $10,000  │
+│ VP threshold, but paying the full $5,940.00 would re-pay the original $1,890.00. A reviewer should confirm the claimed PO     │
+│ amendment, verify GadgetX × 5 was received and not already covered by PAY-44EE3423503A, and if valid pay only the $4,050.00   │
+│ delta rather than the full revised total.                                                                                     │
+└───────────────────────────────────────────────────── NEEDS HUMAN REVIEW ──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1005.json ──────────────────────────────────────────────────────┐
+│ Vendor     Global Supply Chain Partners                                                                                       │
+│ Invoice #  INV-1005                                                                                                           │
+│ Dates      issued 2026-01-18  ·  due 2026-03-18                                                                               │
+│ Amount     $15,225.00  VP review (> $10K)                                                                                     │
+│ Items      WidgetA ×14, GadgetX ×8, WidgetB ×10                                                                               │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  27082 ms                             │
+│                                                                                                                               │
+│  REJECT  STOCK_EXCEEDED  'GadgetX': 8 units billed, only 5 in stock.                                                          │
+│                                                                                                                               │
+│ Invoice INV-1005 from Global Supply Chain Partners totals $15,225.00 USD and is rejected because GadgetX is billed for 8      │
+│ units when only 5 are in stock. Company policy treats insufficient stock as a blocking finding, so the invoice cannot be      │
+│ approved or sent only for review. The amount is also above the $10,000 VP-review threshold, but that does not override the    │
+│ stock rejection. Arithmetic checks out (subtotal $14,500.00, tax $725.00 at 5%, total $15,225.00), and WidgetA (14 of 15 in   │
+│ stock) and WidgetB (10 of 10) are within stock; a corrected invoice should bill no more than 5 GadgetX units.                 │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+Paid 2750.0 to Acme Industrial Supplies
+┌────────────────────────────────────────────────────── invoice_1006.csv ───────────────────────────────────────────────────────┐
+│ Vendor     Acme Industrial Supplies                                                                                           │
+│ Invoice #  INV-1006                                                                                                           │
+│ Dates      issued 2026-01-25  ·  due 2026-02-10                                                                               │
+│ Amount     $2,750.00                                                                                                          │
+│ Items      WidgetA ×5, WidgetB ×3                                                                                             │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  15401 ms                             │
+│                                                                                                                               │
+│ INV-1006 from Acme Industrial Supplies for $2,750.00 USD is approved. Required fields are present, WidgetA (5) and WidgetB    │
+│ (3) are in stock, and line amounts recompute to the stated subtotal and total of $2,750.00 with no tax. Catalog prices are    │
+│ within tolerance, there is no paid or pending duplicate for this vendor and invoice number, and the amount is under the       │
+│ $10,000 VP-review threshold with no fraud signals.                                                                            │
+│ Payment PAY-4310ABCAAF4F: $2,750.00 sent to Acme Industrial Supplies                                                          │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1007.csv ───────────────────────────────────────────────────────┐
+│ Vendor     MegaWidgets Corp                                                                                                   │
+│ Invoice #  INV-1007                                                                                                           │
+│ Dates      issued 2026-01-28  ·  due 2026-02-28                                                                               │
+│ Amount     $15,525.00  VP review (> $10K)                                                                                     │
+│ Items      WidgetA ×20, WidgetB ×15, GadgetX ×3                                                                               │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 2  ·  74875 ms                             │
+│                                                                                                                               │
+│  REJECT  STOCK_EXCEEDED  'WidgetA': 20 units billed, only 15 in stock.                                                        │
+│  REJECT  STOCK_EXCEEDED  'WidgetB': 15 units billed, only 10 in stock.                                                        │
+│  REJECT  TOTAL_MISMATCH  Total: invoice states 15,525.00, computed 15,635.00 (difference -110.00).                            │
+│                                                                                                                               │
+│ Invoice INV-1007 from MegaWidgets Corp is for $15,525.00 USD, which exceeds the $10,000 VP-review threshold, so it would      │
+│ require VP scrutiny even if it were otherwise clean. It is rejected on blocking findings: WidgetA is billed for 20 units but  │
+│ only 15 are in stock, and WidgetB is billed for 15 units but only 10 are in stock (GadgetX, 3 units billed against 5 on hand, │
+│ is not a problem). The stated total of $15,525.00 does not match the recomputed total of $15,635.00 (subtotal $14,750.00 plus │
+│ 6% tax of $885.00), a shortfall of $110.00, which is also a blocking arithmetic mismatch. Missing payment terms are           │
+│ informational only and do not drive the decision. These REJECT-severity stock shortfalls and the total mismatch mean the      │
+│ invoice cannot be paid as submitted.                                                                                          │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1008.txt ───────────────────────────────────────────────────────┐
+│ Vendor     NoProd Industries                                                                                                  │
+│ Invoice #  INV-1008                                                                                                           │
+│ Dates      issued 2026-01-10  ·  due 2026-01-20                                                                               │
+│ Amount     $9,900.00                                                                                                          │
+│ Items      SuperGizmo ×12, MegaSprocket ×6                                                                                    │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  31695 ms                                       │
+│                                                                                                                               │
+│  REJECT  UNKNOWN_ITEM    'SuperGizmo' is not in the inventory system.                                                         │
+│  REJECT  UNKNOWN_ITEM    'MegaSprocket' is not in the inventory system.                                                       │
+│  FLAG    NEAR_THRESHOLD  $9,900.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).              │
+│                                                                                                                               │
+│ Invoice INV-1008 from NoProd Industries for $9,900.00 USD is rejected. Both line items fail inventory lookup: SuperGizmo (qty │
+│ 12 at $400.00) and MegaSprocket (qty 6 at $850.00) are not in the inventory system, with no records and no close matches.     │
+│ Unknown items are a blocking REJECT finding under company policy, so the invoice cannot be approved or sent only for review.  │
+│ Line math is consistent (computed total $9,900.00), currency is USD, and there is no duplicate, but those checks do not       │
+│ override the unknown items. The amount also sits just under the $10,000 VP-review threshold; that flag is noted but is not    │
+│ the basis for rejection.                                                                                                      │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1009.json ──────────────────────────────────────────────────────┐
+│ Vendor     (missing)                                                                                                          │
+│ Invoice #  INV-1009                                                                                                           │
+│ Dates      issued 2026-01-15  ·  due ?                                                                                        │
+│ Amount     -$250.00                                                                                                           │
+│ Items      WidgetA ×-5, WidgetB ×2                                                                                            │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  32426 ms                             │
+│                                                                                                                               │
+│  REJECT  MISSING_FIELD   Missing vendor name; cannot identify who to pay.                                                     │
+│  FLAG    MISSING_FIELD   No due date on the invoice.                                                                          │
+│  REJECT  NEGATIVE_QTY    'WidgetA' has non-positive quantity -5.                                                              │
+│  REJECT  TOTAL_MISMATCH  Subtotal: invoice states 1,000.00, computed -250.00 (difference +1,250.00).                          │
+│  REJECT  TOTAL_MISMATCH  Total: invoice states -250.00, computed 1,000.00 (difference -1,250.00).                             │
+│  REJECT  INVALID_AMOUNT  Amount due is -250.00; nothing payable.                                                              │
+│                                                                                                                               │
+│ Invoice INV-1009 is rejected and must not be paid. The vendor name is blank, so there is no identifiable payee. WidgetA has a │
+│ non-positive quantity of -5, which is not a valid purchase quantity (WidgetB quantity 2 is in stock, but that does not cure   │
+│ the negative line). Arithmetic does not reconcile: the invoice states a subtotal of $1,000.00 while the line items compute to │
+│ -$250.00 (difference of $1,250.00), and the stated total of -$250.00 does not match the computed total of $1,000.00. The      │
+│ amount due is -$250.00 USD, so nothing is payable. A missing due date is noted but is not required for this rejection.        │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+Paid 7185.0 to Consolidated Materials Group
+┌────────────────────────────────────────────────────── invoice_1010.txt ───────────────────────────────────────────────────────┐
+│ Vendor     Consolidated Materials Group                                                                                       │
+│ Invoice #  INV-1010                                                                                                           │
+│ Dates      issued 2026-01-27  ·  due 2026-02-26                                                                               │
+│ Amount     $7,185.00                                                                                                          │
+│ Items      WidgetA ×8, WidgetB ×4, GadgetX ×2, WidgetA ×4 (rush order)                                                        │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  43405 ms                                       │
+│                                                                                                                               │
+│  FLAG  PRICE_VARIANCE  'WidgetA' (rush order) billed at $300.00, +20% vs catalog $250.00.                                     │
+│                                                                                                                               │
+│ INV-1010 from Consolidated Materials Group totals $7,185.00 USD, under the $10,000 VP-review threshold. Arithmetic checks out │
+│ (subtotal $6,700, tax $335, shipping $150), stock covers all quantities, and there is no duplicate or fraud signal. The only  │
+│ flag is a rush-order WidgetA line at $300.00 versus the $250.00 catalog price (+20%, $200.00 extra on 4 units). That premium  │
+│ is noted on the line and does not, by itself, make the invoice look risky enough to hold. Approve and pay Net 30; AP can note │
+│ the $200.00 rush premium against the catalog if cost tracking requires it.                                                    │
+│ Payment PAY-EA2C937B0C36: $7,185.00 sent to Consolidated Materials Group                                                      │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+Paid 3000.0 to Summit Manufacturing Co.
+┌────────────────────────────────────────────────────── invoice_1011.pdf ───────────────────────────────────────────────────────┐
+│ Vendor     Summit Manufacturing Co.                                                                                           │
+│ Invoice #  INV-1011                                                                                                           │
+│ Dates      issued 2026-01-20  ·  due 2026-02-20                                                                               │
+│ Amount     $3,000.00                                                                                                          │
+│ Items      WidgetA ×6, WidgetB ×3                                                                                             │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  29292 ms                                       │
+│                                                                                                                               │
+│ Invoice INV-1011 from Summit Manufacturing Co. for $3,000.00 USD is approved. Line items recompute exactly (WidgetA 6 ×       │
+│ $250.00 = $1,500.00; WidgetB 3 × $500.00 = $1,500.00; total $3,000.00), both SKUs are known and in stock (15 and 10 on hand), │
+│ currency is USD, and there is no paid or pending duplicate on dedupe key summitmanufacturing|1011. The amount is below the    │
+│ $10,000 VP-review threshold, and there are no fraud signals or REJECT/REVIEW findings. Missing payment terms is informational │
+│ only and does not block payment; due date is 2026-02-20.                                                                      │
+│ Payment PAY-83CADB439853: $3,000.00 sent to Summit Manufacturing Co.                                                          │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1011.txt ───────────────────────────────────────────────────────┐
+│ Vendor     Summit Manufacturing Co.                                                                                           │
+│ Invoice #  INV-1011                                                                                                           │
+│ Dates      issued 2026-01-20  ·  due 2026-02-20                                                                               │
+│ Amount     $3,000.00                                                                                                          │
+│ Items      WidgetA ×6, WidgetB ×3                                                                                             │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  27369 ms                                       │
+│                                                                                                                               │
+│  REVIEW  DUPLICATE  Identical copy of INV-1011 from invoice_1011.pdf, which is already paid.                                  │
+│                                                                                                                               │
+│ INV-1011 from Summit Manufacturing Co. for $3,000.00 USD is an identical copy of invoice_1011.pdf, which is already paid      │
+│ under payment reference PAY-83CADB439853. Nothing differs from the paid copy: WidgetA quantity 6 at $250.00 ($1,500.00) and   │
+│ WidgetB quantity 3 at $500.00 ($1,500.00) are unchanged, and the total is still $3,000.00 (delta $0.00). Arithmetic, stock,   │
+│ and catalog checks are clean, and the amount is below the $10,000 VP threshold, but a paid duplicate must not be paid again   │
+│ without confirmation. A reviewer should verify that PAY-83CADB439853 settled this exact invoice and that this submission is   │
+│ not a second billing that should be voided rather than paid.                                                                  │
+└───────────────────────────────────────────────────── NEEDS HUMAN REVIEW ──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1012.pdf ───────────────────────────────────────────────────────┐
+│ Vendor     QuickShip Distributers                                                                                             │
+│ Invoice #  INV 1012                                                                                                           │
+│ Dates      issued 2026-01-26  ·  due 2026-02-25                                                                               │
+│ Amount     $9,975.00                                                                                                          │
+│ Items      WidgetA ×12, WidgetB ×7, GadgetX ×4                                                                                │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  43904 ms                                       │
+│                                                                                                                               │
+│  FLAG  VENDOR_RENAMED  Vendor indicates a name change ('formerly'); confirm bank details match the vendor on file.            │
+│  FLAG  NEAR_THRESHOLD  $9,975.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).                │
+│                                                                                                                               │
+│ Policy would auto-approve INV 1012 from QuickShip Distributers for $9,975.00 USD: required fields are present, stock covers   │
+│ WidgetA (12), WidgetB (7), and GadgetX (4), arithmetic checks out (subtotal $9,500.00, tax $475.00 at 5%, total $9,975.00),   │
+│ and there is no duplicate. Two risk flags together still warrant a hold. The notes say the vendor was “formerly FastShip      │
+│ Ltd.,” so bank details must be confirmed against the vendor on file before any payment, and the total sits only $25.00 under  │
+│ the $10,000 VP-review threshold, which looks like possible threshold avoidance. A reviewer should verify the legal name       │
+│ change and payee bank details, and confirm the amount and PO-20260115 were not structured to stay under VP scrutiny.          │
+│ Agent recommended NEEDS_HUMAN_REVIEW; policy said APPROVED. Stricter outcome applied.                                         │
+└───────────────────────────────────────────────────── NEEDS HUMAN REVIEW ──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1012.txt ───────────────────────────────────────────────────────┐
+│ Vendor     QuickShip Distributers                                                                                             │
+│ Invoice #  INV 1012                                                                                                           │
+│ Dates      issued 2026-01-26  ·  due 2026-02-25                                                                               │
+│ Amount     $9,975.00                                                                                                          │
+│ Items      WidgetA ×12, WidgetB ×7, GadgetX ×4                                                                                │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  42132 ms                                       │
+│                                                                                                                               │
+│  REVIEW  DUPLICATE       Identical copy of INV 1012 from invoice_1012.pdf, which is already awaiting human review.            │
+│  FLAG    VENDOR_RENAMED  Vendor indicates a name change ('formerly'); confirm bank details match the vendor on file.          │
+│  FLAG    NEAR_THRESHOLD  $9,975.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).              │
+│                                                                                                                               │
+│ INV 1012 from QuickShip Distributers is an identical copy of the invoice already on file from invoice_1012.pdf, which is      │
+│ awaiting human review. Nothing differs: WidgetA (12 × $250.00 = $3,000.00), WidgetB (7 × $500.00 = $3,500.00), and GadgetX (4 │
+│ × $750.00 = $3,000.00) are unchanged, as are the subtotal ($9,500.00), tax ($475.00), and total ($9,975.00 USD; delta $0.00). │
+│ Do not pay both copies. A reviewer should confirm this text file is a resubmission of the PDF already in review and close one │
+│ of the two before any payment. Also confirm bank details match the vendor on file, because the notes say the vendor was       │
+│ formerly FastShip Ltd., and note that $9,975.00 sits just under the $10,000 VP-review threshold.                              │
+└───────────────────────────────────────────────────── NEEDS HUMAN REVIEW ──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1013.json ──────────────────────────────────────────────────────┐
+│ Vendor     Atlas Industrial Supply                                                                                            │
+│ Invoice #  INV-1013                                                                                                           │
+│ Dates      issued 2026-01-24  ·  due 2026-03-24                                                                               │
+│ Amount     $22,562.80  VP review (> $10K)                                                                                     │
+│ Items      WidgetA ×15, WidgetB ×10, GadgetX ×5, WidgetA ×5 (Volume discount), WidgetB ×8 (Volume discount), GadgetX ×3       │
+│            (Expedited), WidgetA ×2 (Replacement), GadgetX ×1 (Sample)                                                         │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  41872 ms                             │
+│                                                                                                                               │
+│  REJECT  STOCK_EXCEEDED  'WidgetA': 22 units billed across 3 lines, only 15 in stock.                                         │
+│  REJECT  STOCK_EXCEEDED  'WidgetB': 18 units billed across 2 lines, only 10 in stock.                                         │
+│  REJECT  STOCK_EXCEEDED  'GadgetX': 9 units billed across 3 lines, only 5 in stock.                                           │
+│  REJECT  TOTAL_MISMATCH  Total: invoice states 22,562.80, computed 22,512.80 (difference +50.00).                             │
+│                                                                                                                               │
+│ Invoice INV-1013 from Atlas Industrial Supply for $22,562.80 USD is rejected. Stock is insufficient on every billed item:     │
+│ WidgetA is billed for 22 units across 3 lines but only 15 are in stock, WidgetB is billed for 18 units across 2 lines but     │
+│ only 10 are in stock, and GadgetX is billed for 9 units across 3 lines but only 5 are in stock. The stated total of           │
+│ $22,562.80 is also $50.00 higher than the recomputed total of $22,512.80 (subtotal $21,040.00 plus 7% tax of $1,472.80).      │
+│ These are blocking findings, so the invoice cannot be paid as submitted. The amount is above $10,000, but VP scrutiny does    │
+│ not override the reject.                                                                                                      │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1013.pdf ───────────────────────────────────────────────────────┐
+│ Vendor     Atlas Industrial Supply                                                                                            │
+│ Invoice #  INV-1013                                                                                                           │
+│ Dates      issued 2026-01-24  ·  due 2026-03-24                                                                               │
+│ Amount     $22,562.80  VP review (> $10K)                                                                                     │
+│ Items      WidgetA ×15, WidgetB ×10, GadgetX ×5, WidgetA ×5 (Volume discount), WidgetB ×8 (Volume discount), GadgetX ×3       │
+│            (Expedited), WidgetA ×2 (Replacement), GadgetX ×1 (Sample)                                                         │
+│ Agents     extraction: llm ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  50639 ms                                       │
+│                                                                                                                               │
+│  REJECT  STOCK_EXCEEDED        'WidgetA': 22 units billed across 3 lines, only 15 in stock.                                   │
+│  REJECT  STOCK_EXCEEDED        'WidgetB': 18 units billed across 2 lines, only 10 in stock.                                   │
+│  REJECT  STOCK_EXCEEDED        'GadgetX': 9 units billed across 3 lines, only 5 in stock.                                     │
+│  REJECT  TOTAL_MISMATCH        Total: invoice states 22,562.80, computed 22,512.80 (difference +50.00).                       │
+│  INFO    PREVIOUSLY_PROCESSED  Seen before (invoice_1013.json: REJECTED); re-evaluated from scratch because no copy was       │
+│                                paid.                                                                                          │
+│                                                                                                                               │
+│ Invoice INV-1013 from Atlas Industrial Supply is rejected. Three items are billed for more units than are in stock: WidgetA   │
+│ 22 units across three lines versus 15 on hand, WidgetB 18 units across two lines versus 10 on hand, and GadgetX 9 units       │
+│ across three lines versus 5 on hand. The stated total of $22,562.80 USD also does not match the recomputed total of           │
+│ $22,512.80 USD (a $50.00 overstatement); the subtotal of $21,040.00 and 7% tax of $1,472.80 are consistent, so the error is   │
+│ in the invoice total. These REJECT-severity findings require rejection even though the amount is above the $10,000 VP         │
+│ threshold. A prior copy of this invoice number was rejected and no copy was paid, so this is a fresh rejection, not a         │
+│ duplicate payment.                                                                                                            │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+Paid 4455.0 to TechParts International
+┌────────────────────────────────────────────────────── invoice_1014.xml ───────────────────────────────────────────────────────┐
+│ Vendor     TechParts International                                                                                            │
+│ Invoice #  INV-1014                                                                                                           │
+│ Dates      issued 2026-01-26  ·  due 2026-02-26                                                                               │
+│ Amount     $4,455.00  (4,125.00 EUR @ 1.08)                                                                                   │
+│ Items      WidgetA ×4, WidgetB ×6                                                                                             │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  21016 ms                             │
+│                                                                                                                               │
+│  INFO  CURRENCY_CONVERTED  4,125.00 EUR converted at 1.08 = $4,455.00 (static mock rate).                                     │
+│                                                                                                                               │
+│ INV-1014 from TechParts International is approved. The invoice total of 4,125.00 EUR converts at the stated rate of 1.08 to   │
+│ $4,455.00 USD, which is below the $10,000 VP-scrutiny threshold. Line items recompute cleanly (WidgetA 4 × 225.00 and WidgetB │
+│ 6 × 475.00 = 3,750.00 subtotal; 10% tax of 375.00; total 4,125.00 EUR), both items are in stock, catalog prices are within    │
+│ tolerance, and there is no duplicate on key techpartsinternational|1014. The only finding is informational currency           │
+│ conversion; there are no reject-severity issues, review-severity findings, or fraud signals.                                  │
+│ Payment PAY-E228EE0987A8: $4,455.00 sent to TechParts International                                                           │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+Paid 6500.0 to Reliable Components Inc.
+┌────────────────────────────────────────────────────── invoice_1015.csv ───────────────────────────────────────────────────────┐
+│ Vendor     Reliable Components Inc.                                                                                           │
+│ Invoice #  INV-1015                                                                                                           │
+│ Dates      issued 2026-01-29  ·  due 2026-02-28                                                                               │
+│ Amount     $6,500.00                                                                                                          │
+│ Items      WidgetA ×10, WidgetB ×5, GadgetX ×2                                                                                │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  22897 ms                             │
+│                                                                                                                               │
+│ INV-1015 from Reliable Components Inc. is approved for payment of $6,500.00 USD. Line items recompute cleanly (WidgetA 10 ×   │
+│ $250.00 = $2,500.00, WidgetB 5 × $500.00 = $2,500.00, GadgetX 2 × $750.00 = $1,500.00; subtotal and total $6,500.00 with no   │
+│ tax). All quantities are in stock, catalog prices are within tolerance, currency is USD, and there is no paid or pending      │
+│ duplicate for this vendor and invoice number. The only finding is missing payment terms, which is informational and not a     │
+│ risk flag. The amount is below the $10,000 VP-review threshold and there are no fraud signals.                                │
+│ Payment PAY-2B9CE12FED20: $6,500.00 sent to Reliable Components Inc.                                                          │
+└─────────────────────────────────────────────────────── APPROVED & PAID ───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────── invoice_1016.json ──────────────────────────────────────────────────────┐
+│ Vendor     Widgets Inc.                                                                                                       │
+│ Invoice #  INV-1016                                                                                                           │
+│ Dates      issued 2026-01-27  ·  due 2026-02-27                                                                               │
+│ Amount     $3,233.00                                                                                                          │
+│ Items      WidgetA ×4, WidgetB ×2, WidgetC ×3                                                                                 │
+│ Agents     extraction: deterministic ×1  ·  tools: 7 called  ·  reflection rounds: 1  ·  19587 ms                             │
+│                                                                                                                               │
+│  REJECT  UNKNOWN_ITEM  'WidgetC' is not in the inventory system.                                                              │
+│                                                                                                                               │
+│ Invoice INV-1016 from Widgets Inc. is rejected because line item WidgetC (quantity 3 at $350.00, amount $1,050.00) is not in  │
+│ the inventory system. Closest catalog names are WidgetA, WidgetB, and GadgetX, with no near-match for WidgetC. Known lines    │
+│ check out: WidgetA (4 requested, 15 in stock) and WidgetB (2 requested, 10 in stock), and arithmetic is consistent (subtotal  │
+│ $3,050.00, tax $183.00, total $3,233.00 USD). There are no duplicate or fraud signals and the amount is below the $10,000 VP  │
+│ threshold, but an unknown item is a blocking reject under policy. Do not pay until the vendor corrects the item code or       │
+│ procurement confirms a valid catalog SKU and reissues the invoice.                                                            │
+└────────────────────────────────────────────────────────── REJECTED ───────────────────────────────────────────────────────────┘
+                                                      Invoice batch results                                                      
+┌───────────────────────────┬──────────────────────────────┬──────────────┬────────────────────┬────────────────────────────────┐
+│ File                      │ Vendor                       │ Amount (USD) │ Outcome            │ Reasons                        │
+├───────────────────────────┼──────────────────────────────┼──────────────┼────────────────────┼────────────────────────────────┤
+│ invoice_1001.txt          │ Widgets Inc.                 │    $5,000.00 │ APPROVED           │ —                              │
+│ invoice_1002.txt          │ Gadgets Co.                  │   $15,000.00 │ REJECTED           │ DUE_DATE_INCONSISTENT,         │
+│                           │                              │              │                    │ STOCK_EXCEEDED, VP_REVIEW      │
+│ invoice_1003.txt          │ Fraudster LLC                │  $100,000.00 │ REJECTED           │ FRAUD_SIGNAL, OUT_OF_STOCK,    │
+│                           │                              │              │                    │ VP_REVIEW                      │
+│ invoice_1004.json         │ Precision Parts Ltd.         │    $1,890.00 │ APPROVED           │ —                              │
+│ invoice_1004_revised.json │ Precision Parts Ltd.         │    $5,940.00 │ NEEDS_HUMAN_REVIEW │ DUPLICATE                      │
+│ invoice_1005.json         │ Global Supply Chain Partners │   $15,225.00 │ REJECTED           │ STOCK_EXCEEDED, VP_REVIEW      │
+│ invoice_1006.csv          │ Acme Industrial Supplies     │    $2,750.00 │ APPROVED           │ —                              │
+│ invoice_1007.csv          │ MegaWidgets Corp             │   $15,525.00 │ REJECTED           │ STOCK_EXCEEDED,                │
+│                           │                              │              │                    │ TOTAL_MISMATCH, VP_REVIEW      │
+│ invoice_1008.txt          │ NoProd Industries            │    $9,900.00 │ REJECTED           │ NEAR_THRESHOLD, UNKNOWN_ITEM   │
+│ invoice_1009.json         │ —                            │     -$250.00 │ REJECTED           │ INVALID_AMOUNT, MISSING_FIELD, │
+│                           │                              │              │                    │ NEGATIVE_QTY, TOTAL_MISMATCH   │
+│ invoice_1010.txt          │ Consolidated Materials Group │    $7,185.00 │ APPROVED           │ PRICE_VARIANCE                 │
+│ invoice_1011.pdf          │ Summit Manufacturing Co.     │    $3,000.00 │ APPROVED           │ —                              │
+│ invoice_1011.txt          │ Summit Manufacturing Co.     │    $3,000.00 │ NEEDS_HUMAN_REVIEW │ DUPLICATE                      │
+│ invoice_1012.pdf          │ QuickShip Distributers       │    $9,975.00 │ NEEDS_HUMAN_REVIEW │ NEAR_THRESHOLD, VENDOR_RENAMED │
+│ invoice_1012.txt          │ QuickShip Distributers       │    $9,975.00 │ NEEDS_HUMAN_REVIEW │ DUPLICATE, NEAR_THRESHOLD,     │
+│                           │                              │              │                    │ VENDOR_RENAMED                 │
+│ invoice_1013.json         │ Atlas Industrial Supply      │   $22,562.80 │ REJECTED           │ STOCK_EXCEEDED,                │
+│                           │                              │              │                    │ TOTAL_MISMATCH, VP_REVIEW      │
+│ invoice_1013.pdf          │ Atlas Industrial Supply      │   $22,562.80 │ REJECTED           │ STOCK_EXCEEDED,                │
+│                           │                              │              │                    │ TOTAL_MISMATCH, VP_REVIEW      │
+│ invoice_1014.xml          │ TechParts International      │    $4,455.00 │ APPROVED           │ —                              │
+│ invoice_1015.csv          │ Reliable Components Inc.     │    $6,500.00 │ APPROVED           │ —                              │
+│ invoice_1016.json         │ Widgets Inc.                 │    $3,233.00 │ REJECTED           │ UNKNOWN_ITEM                   │
+└───────────────────────────┴──────────────────────────────┴──────────────┴────────────────────┴────────────────────────────────┘
+┌─────────────────────────────────────────────────────── Business impact ───────────────────────────────────────────────────────┐
+│ 20 invoices processed in 713.8 s (median 33.61 s each), against a 5-day manual cycle.                                         │
+│ Paid automatically: 7 invoices, $30,780.00  ·  held for a human: 4, $28,890.00  ·  blocked: 9, $204,008.60                    │
+│ Decided without a human: 80% (paid straight through: 35%).                                                                    │
+│ Caught before payment: 3 duplicate(s), 1 fraud-flagged invoice(s); top issues: STOCK_EXCEEDED ×5, TOTAL_MISMATCH ×4,          │
+│ DUPLICATE ×3, NEAR_THRESHOLD ×3, UNKNOWN_ITEM ×2                                                                              │
+│ Agent behaviour: 0 extraction self-correction(s), 1 approval revision(s) after critique, 6 VP-level review(s).                │
+│                                                                                                                               │
+│ Assumptions: the README's baseline (about $2M/yr manual cost, 30% keying errors, 5-day cycle) has no invoice volume, so we    │
+│ report rates rather than projected dollars. If manual handling cost scales with touches, the share of that cost removed is    │
+│ roughly the 'decided without a human' rate. Blocked amounts are exposure avoided, not savings. VP threshold $10,000.          │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

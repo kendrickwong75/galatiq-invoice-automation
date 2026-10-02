@@ -1,0 +1,2060 @@
+{
+  "summary": {
+    "invoices": 20,
+    "approved": 7,
+    "needs_review": 4,
+    "rejected": 9,
+    "paid_usd": 30780.0,
+    "held_usd": 28890.0,
+    "blocked_usd": 204008.6,
+    "straight_through_rate": 0.35,
+    "touchless_decision_rate": 0.8,
+    "duplicates_blocked": 3,
+    "fraud_flagged": 1,
+    "issues_caught": {
+      "STOCK_EXCEEDED": 5,
+      "TOTAL_MISMATCH": 4,
+      "DUPLICATE": 3,
+      "NEAR_THRESHOLD": 3,
+      "UNKNOWN_ITEM": 2,
+      "VENDOR_RENAMED": 2,
+      "DUE_DATE_INCONSISTENT": 1,
+      "FRAUD_SIGNAL": 1,
+      "OUT_OF_STOCK": 1,
+      "INVALID_AMOUNT": 1,
+      "MISSING_FIELD": 1,
+      "NEGATIVE_QTY": 1
+    },
+    "median_seconds_per_invoice": 33.61,
+    "total_seconds": 713.8,
+    "self_corrections": 0,
+    "reflection_revisions": 1,
+    "vp_reviews": 6
+  },
+  "results": [
+    {
+      "source_file": "invoice_1001.txt",
+      "run_id": "9d5687d6",
+      "outcome": "APPROVED",
+      "rationale": "INV-1001 from Widgets Inc. for $5,000.00 USD is approved. Required fields are present, WidgetA (10 of 15 in stock) and WidgetB (5 of 10 in stock) are known catalog items, and line amounts, subtotal, tax, and total recompute to $5,000.00 with no mismatch. Unit prices are within 10% of catalog, currency is USD, and there is no paid or pending duplicate for widgets|1001. The amount is below the $10,000 VP-review threshold and there are no risk or fraud flags.",
+      "reason_codes": [],
+      "findings": [],
+      "invoice": {
+        "invoice_number": "INV-1001",
+        "vendor": "Widgets Inc.",
+        "vendor_address": null,
+        "invoice_date": "2026-01-15",
+        "due_date": "2026-02-01",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 10.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 5.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 5000.0,
+        "tax_rate": 0.0,
+        "tax_amount": 0.0,
+        "other_charges": [],
+        "total": 5000.0,
+        "payment_terms": "Net 15",
+        "notes": null
+      },
+      "amount_usd": 5000.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Widgets Inc.",
+        "amount_usd": 5000.0,
+        "original_amount": 5000.0,
+        "currency": "USD",
+        "payment_ref": "PAY-88E117EE0C9E",
+        "paid_at": "2026-10-02T08:47:20+00:00",
+        "error": null
+      },
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1001 (Widgets Inc.)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No gaps.\n- **Inventory:** WidgetA 10 requested / 15 in stock; WidgetB 5 requested / 10 in stock. No unknown items.\n- **Arithmetic:** Line amounts, subtotal, tax, and total recompute to $5,000.00. No mismatches.\n- **Catalog prices:** Unit prices within 10% of catalog. No flags.\n- **Duplicate check:** No paid or pending invoice for dedupe key `widgets|1001`.\n- **FX / fraud:** Amount due is $5,000.00 USD (rate 1.0). No fraud signals. Below the $10,000 VP-review threshold.",
+      "provider": "grok",
+      "duration_ms": 34797,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1002.txt",
+      "run_id": "f3bbc6ca",
+      "outcome": "REJECTED",
+      "rationale": "Invoice 1002 from Gadgets Co. is rejected. It bills 20 units of GadgetX at $750 each for a total of $15,000 USD, but only 5 units are in stock. Company policy requires rejection when billed quantity exceeds available stock. The amount is also above the $10,000 VP review threshold, and the due date of 2026-01-30 matches the invoice date despite Net 30 terms. Those points do not change the rejection. Arithmetic checks out (20 \u00d7 $750 = $15,000), and there is no duplicate or strong fraud signal.",
+      "reason_codes": [
+        "DUE_DATE_INCONSISTENT",
+        "STOCK_EXCEEDED",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'GadgetX': 20 units billed, only 5 in stock.",
+          "data": {
+            "item": "GadgetX",
+            "requested": 20.0,
+            "in_stock": 5,
+            "lines": 1
+          }
+        },
+        {
+          "code": "DUE_DATE_INCONSISTENT",
+          "severity": "FLAG",
+          "message": "Due on the invoice date despite 'Net 30' terms.",
+          "data": {
+            "terms": "Net 30"
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "1002",
+        "vendor": "Gadgets Co.",
+        "vendor_address": null,
+        "invoice_date": "2026-01-30",
+        "due_date": "2026-01-30",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "GadgetX",
+            "quantity": 20.0,
+            "unit_price": 750.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": null,
+        "tax_rate": null,
+        "tax_amount": null,
+        "other_charges": [],
+        "total": 15000.0,
+        "payment_terms": "Net 30",
+        "notes": null
+      },
+      "amount_usd": 15000.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 invoice 1002 (Gadgets Co.)**\n\n- **Blocking \u2014 stock exceeded:** GadgetX is billed for 20 units, but only 5 are in stock (STOCK_EXCEEDED, REJECT).\n- **Risk flag \u2014 due date vs terms:** Due date is 2026-01-30, the same as the invoice date, despite payment terms of Net 30 (DUE_DATE_INCONSISTENT).\n- **VP-level review threshold:** Amount due converts to **$15,000 USD** (rate 1.0), which is above the $10,000 VP review threshold.\n- **Other checks clear:** Required fields present; arithmetic recomputes to $15,000 with no mismatch; catalog prices within tolerance; no duplicate on ledger key `gadgets|1002`; no strong fraud signals.",
+      "provider": "grok",
+      "duration_ms": 40106,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1003.txt",
+      "run_id": "4e65fd06",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1003 from Fraudster LLC for $100,000.00 USD is rejected. FakeItem is billed for 100 units at $1,000.00 each, but inventory shows zero units in stock (OUT_OF_STOCK). Four strong fraud signals also independently require rejection: pressure language (\u201cURGENT - Pay immediately to avoid penalties!!!\u201d), a request for wire transfer, a vendor name containing \u201cFraud,\u201d and a due date of \u201cyesterday,\u201d which is not a calendar date. The amount is well above the $10,000 VP-review threshold, but the blocking stock finding and fraud signals already require rejection rather than review. Do not pay.",
+      "reason_codes": [
+        "FRAUD_SIGNAL",
+        "OUT_OF_STOCK",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "OUT_OF_STOCK",
+          "severity": "REJECT",
+          "message": "'FakeItem' has zero stock but 100 units are billed.",
+          "data": {
+            "item": "FakeItem",
+            "requested": 100.0,
+            "in_stock": 0
+          }
+        },
+        {
+          "code": "FRAUD_SIGNAL",
+          "severity": "FLAG",
+          "message": "Pressure language: 'URGENT'.",
+          "data": {
+            "signal": "urgent_language",
+            "strong": true
+          }
+        },
+        {
+          "code": "FRAUD_SIGNAL",
+          "severity": "FLAG",
+          "message": "Requests payment via 'Wire transfer'.",
+          "data": {
+            "signal": "unusual_payment_channel",
+            "strong": true
+          }
+        },
+        {
+          "code": "FRAUD_SIGNAL",
+          "severity": "FLAG",
+          "message": "Vendor name 'Fraudster LLC' contains 'Fraud'.",
+          "data": {
+            "signal": "suspicious_vendor_name",
+            "strong": true
+          }
+        },
+        {
+          "code": "FRAUD_SIGNAL",
+          "severity": "FLAG",
+          "message": "Due date 'yesterday' is not a calendar date.",
+          "data": {
+            "signal": "invalid_due_date",
+            "strong": true
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1003",
+        "vendor": "Fraudster LLC",
+        "vendor_address": null,
+        "invoice_date": "2026-01-20",
+        "due_date": "yesterday",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "FakeItem",
+            "quantity": 100.0,
+            "unit_price": 1000.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": null,
+        "tax_rate": null,
+        "tax_amount": null,
+        "other_charges": [],
+        "total": 100000.0,
+        "payment_terms": "Immediate",
+        "notes": "URGENT - Pay immediately to avoid penalties!!! Wire transfer preferred."
+      },
+      "amount_usd": 100000.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1003 (Fraudster LLC)**\n\n- **Blocking \u2014 out of stock:** `FakeItem` is billed for 100 units but inventory shows 0 in stock (`OUT_OF_STOCK`, severity REJECT).\n- **Risk \u2014 pressure language:** Notes say \u201cURGENT - Pay immediately to avoid penalties!!!\u201d (strong fraud signal).\n- **Risk \u2014 unusual payment channel:** Notes request \u201cWire transfer preferred\u201d (strong fraud signal).\n- **Risk \u2014 suspicious vendor name:** Vendor \u201cFraudster LLC\u201d contains \u201cFraud\u201d (strong fraud signal).\n- **Risk \u2014 invalid due date:** Due date is \u201cyesterday\u201d, not a calendar date (strong fraud signal).\n- **Amount:** $100,000 USD (already USD; arithmetic recomputes to the stated total). Above the $10,000 VP-review threshold. No missing required fields, catalog-price flags, or duplicate ledger hits.",
+      "provider": "grok",
+      "duration_ms": 56784,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1004.json",
+      "run_id": "c8bf62ba",
+      "outcome": "APPROVED",
+      "rationale": "INV-1004 from Precision Parts Ltd. is approved for payment of $1,890.00 USD. Required fields are present, WidgetA (3 units, 15 in stock) and WidgetB (2 units, 10 in stock) are known catalog items with sufficient stock, and line amounts recompute to a $1,750.00 subtotal, $140.00 tax, and $1,890.00 total with no arithmetic mismatch. There is no paid or pending duplicate for dedupe key precisionparts|1004, currency is USD, unit prices are within catalog tolerance, and the amount is below the $10,000 VP-review threshold with no fraud or risk flags.",
+      "reason_codes": [],
+      "findings": [],
+      "invoice": {
+        "invoice_number": "INV-1004",
+        "vendor": "Precision Parts Ltd.",
+        "vendor_address": "742 Evergreen Terrace, Springfield, IL 62704",
+        "invoice_date": "2026-01-22",
+        "due_date": "2026-02-22",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 3.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 2.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 1750.0,
+        "tax_rate": 0.08,
+        "tax_amount": 140.0,
+        "other_charges": [],
+        "total": 1890.0,
+        "payment_terms": "Net 30",
+        "notes": null
+      },
+      "amount_usd": 1890.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Precision Parts Ltd.",
+        "amount_usd": 1890.0,
+        "original_amount": 1890.0,
+        "currency": "USD",
+        "payment_ref": "PAY-44EE3423503A",
+        "paid_at": "2026-10-02T08:49:17+00:00",
+        "error": null
+      },
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1004 (Precision Parts Ltd.)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No blocking gaps.\n- **Inventory:** WidgetA (3 requested, 15 in stock) and WidgetB (2 requested, 10 in stock). No unknown items.\n- **Arithmetic:** Line amounts recompute to subtotal $1,750.00; tax $140.00; total and amount due $1,890.00. No mismatches.\n- **Catalog prices:** No unit prices more than 10% above catalog (after FX).\n- **Duplicate check:** No paid or pending invoice for dedupe key `precisionparts|1004`.\n- **FX / fraud:** Amount due is **$1,890.00 USD** (rate 1.0). Below the $10,000 VP-review threshold. No fraud red flags.",
+      "provider": "grok",
+      "duration_ms": 20264,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1004_revised.json",
+      "run_id": "ea774fa0",
+      "outcome": "NEEDS_HUMAN_REVIEW",
+      "rationale": "INV-1004 from Precision Parts Ltd. is a revised version of invoice_1004.json, which is already paid under PAY-44EE3423503A. The paid copy totaled $1,890.00 and did not include GadgetX; this revision keeps WidgetA \u00d7 3 and WidgetB \u00d7 2 and adds GadgetX \u00d7 5 at $750.00 each, raising the total to $5,940.00 (delta +$4,050.00, of which $3,750.00 is the new line and $300.00 is 8% tax on that line). Arithmetic, stock, and catalog prices check out, the currency is USD, and the amount is below the $10,000 VP threshold, but paying the full $5,940.00 would re-pay the original $1,890.00. A reviewer should confirm the claimed PO amendment, verify GadgetX \u00d7 5 was received and not already covered by PAY-44EE3423503A, and if valid pay only the $4,050.00 delta rather than the full revised total.",
+      "reason_codes": [
+        "DUPLICATE"
+      ],
+      "findings": [
+        {
+          "code": "DUPLICATE",
+          "severity": "REVIEW",
+          "message": "Revised version of INV-1004 from invoice_1004.json, which is already paid.",
+          "data": {
+            "prior_source": "invoice_1004.json",
+            "prior_status": "PAID",
+            "prior_payment_ref": "PAY-44EE3423503A",
+            "kind": "revised version",
+            "diff": {
+              "line_changes": [
+                {
+                  "item": "GadgetX",
+                  "before": 0,
+                  "after": 5.0
+                }
+              ],
+              "prior_total": 1890.0,
+              "new_total": 5940.0,
+              "total_delta": 4050.0,
+              "identical": false
+            }
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1004",
+        "vendor": "Precision Parts Ltd.",
+        "vendor_address": "742 Evergreen Terrace, Springfield, IL 62704",
+        "invoice_date": "2026-01-22",
+        "due_date": "2026-02-22",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 3.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 2.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 5.0,
+            "unit_price": 750.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 5500.0,
+        "tax_rate": 0.08,
+        "tax_amount": 440.0,
+        "other_charges": [],
+        "total": 5940.0,
+        "payment_terms": "Net 30",
+        "notes": "Revision R1. Revised invoice - additional items added per PO amendment"
+      },
+      "amount_usd": 5940.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1004 (Precision Parts Ltd.)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No gaps.\n- **Arithmetic:** Recomputed subtotal $5,500.00 and total $5,940.00 match the invoice (tax $440.00 at 8%).\n- **Inventory:** All billed quantities are in stock \u2014 WidgetA 3 of 15, WidgetB 2 of 10, GadgetX 5 of 5.\n- **Catalog prices:** No unit price more than 10% above catalog.\n- **Duplicate / revision (REVIEW):** Same vendor and number as `invoice_1004.json`, already **PAID** (ref `PAY-44EE3423503A`). This revision adds GadgetX \u00d7 5; prior total $1,890.00 \u2192 new total $5,940.00 (delta +$4,050.00). Not identical to the paid invoice.\n- **Amount / fraud:** $5,940.00 USD (below the $10,000 VP-review threshold). No fraud signals.",
+      "provider": "grok",
+      "duration_ms": 38238,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1005.json",
+      "run_id": "789af72c",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1005 from Global Supply Chain Partners totals $15,225.00 USD and is rejected because GadgetX is billed for 8 units when only 5 are in stock. Company policy treats insufficient stock as a blocking finding, so the invoice cannot be approved or sent only for review. The amount is also above the $10,000 VP-review threshold, but that does not override the stock rejection. Arithmetic checks out (subtotal $14,500.00, tax $725.00 at 5%, total $15,225.00), and WidgetA (14 of 15 in stock) and WidgetB (10 of 10) are within stock; a corrected invoice should bill no more than 5 GadgetX units.",
+      "reason_codes": [
+        "STOCK_EXCEEDED",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'GadgetX': 8 units billed, only 5 in stock.",
+          "data": {
+            "item": "GadgetX",
+            "requested": 8.0,
+            "in_stock": 5,
+            "lines": 1
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1005",
+        "vendor": "Global Supply Chain Partners",
+        "vendor_address": "1600 Pennsylvania Ave, Washington, DC 20500",
+        "invoice_date": "2026-01-18",
+        "due_date": "2026-03-18",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 14.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 8.0,
+            "unit_price": 750.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 10.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 14500.0,
+        "tax_rate": 0.05,
+        "tax_amount": 725.0,
+        "other_charges": [],
+        "total": 15225.0,
+        "payment_terms": "Net 60",
+        "notes": null
+      },
+      "amount_usd": 15225.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1005 (Global Supply Chain Partners)**\n\n- **Blocking \u2014 stock exceeded:** GadgetX billed at 8 units, only 5 in stock (WidgetA 14/15 and WidgetB 10/10 are within stock).\n- **Risk flag \u2014 amount threshold:** Amount due is **$15,225.00 USD** (currency USD, rate 1.0), above the $10,000 VP-review threshold.\n- **Required fields:** Vendor, invoice number, line items, total, and due date are present.\n- **Arithmetic:** Recomputed subtotal $14,500.00 and total $15,225.00 match the invoice (tax $725.00 at 5%).\n- **Catalog prices / duplicates / fraud:** No unit-price flags (>10% over catalog), no paid or pending duplicate for this vendor and number, and no fraud signals.",
+      "provider": "grok",
+      "duration_ms": 27082,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1006.csv",
+      "run_id": "cde9722f",
+      "outcome": "APPROVED",
+      "rationale": "INV-1006 from Acme Industrial Supplies for $2,750.00 USD is approved. Required fields are present, WidgetA (5) and WidgetB (3) are in stock, and line amounts recompute to the stated subtotal and total of $2,750.00 with no tax. Catalog prices are within tolerance, there is no paid or pending duplicate for this vendor and invoice number, and the amount is under the $10,000 VP-review threshold with no fraud signals.",
+      "reason_codes": [],
+      "findings": [],
+      "invoice": {
+        "invoice_number": "INV-1006",
+        "vendor": "Acme Industrial Supplies",
+        "vendor_address": null,
+        "invoice_date": "2026-01-25",
+        "due_date": "2026-02-10",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 5.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 3.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 2750.0,
+        "tax_rate": null,
+        "tax_amount": 0.0,
+        "other_charges": [],
+        "total": 2750.0,
+        "payment_terms": "Net 15",
+        "notes": null
+      },
+      "amount_usd": 2750.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Acme Industrial Supplies",
+        "amount_usd": 2750.0,
+        "original_amount": 2750.0,
+        "currency": "USD",
+        "payment_ref": "PAY-4310ABCAAF4F",
+        "paid_at": "2026-10-02T08:50:38+00:00",
+        "error": null
+      },
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "## Validation summary \u2014 INV-1006\n\n- **Required fields:** Present (vendor Acme Industrial Supplies, invoice number INV-1006, line items, total $2,750.00, due date 2026-02-10). No gaps.\n- **Inventory:** WidgetA 5 requested / 15 in stock; WidgetB 3 requested / 10 in stock. No unknown items or quantity shortfalls.\n- **Arithmetic:** Line amounts recompute to subtotal $2,750.00; tax $0.00; total and amount due $2,750.00. No mismatches.\n- **Catalog prices:** No unit prices more than 10% above catalog.\n- **Duplicate check:** No paid or pending invoice for dedupe key `acmeindustrialsupplies|1006`.\n- **USD / fraud:** Amount due is $2,750.00 USD (rate 1.0), under the $10,000 VP-review threshold. No fraud signals (pressure language, wire demands, bad due dates, or renames).\n\nNo blocking issues or risk flags.",
+      "provider": "grok",
+      "duration_ms": 15401,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1007.csv",
+      "run_id": "b0633f43",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1007 from MegaWidgets Corp is for $15,525.00 USD, which exceeds the $10,000 VP-review threshold, so it would require VP scrutiny even if it were otherwise clean. It is rejected on blocking findings: WidgetA is billed for 20 units but only 15 are in stock, and WidgetB is billed for 15 units but only 10 are in stock (GadgetX, 3 units billed against 5 on hand, is not a problem). The stated total of $15,525.00 does not match the recomputed total of $15,635.00 (subtotal $14,750.00 plus 6% tax of $885.00), a shortfall of $110.00, which is also a blocking arithmetic mismatch. Missing payment terms are informational only and do not drive the decision. These REJECT-severity stock shortfalls and the total mismatch mean the invoice cannot be paid as submitted.",
+      "reason_codes": [
+        "STOCK_EXCEEDED",
+        "TOTAL_MISMATCH",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "MISSING_FIELD",
+          "severity": "INFO",
+          "message": "No payment terms stated.",
+          "data": {
+            "field": "payment_terms"
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetA': 20 units billed, only 15 in stock.",
+          "data": {
+            "item": "WidgetA",
+            "requested": 20.0,
+            "in_stock": 15,
+            "lines": 1
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetB': 15 units billed, only 10 in stock.",
+          "data": {
+            "item": "WidgetB",
+            "requested": 15.0,
+            "in_stock": 10,
+            "lines": 1
+          }
+        },
+        {
+          "code": "TOTAL_MISMATCH",
+          "severity": "REJECT",
+          "message": "Total: invoice states 15,525.00, computed 15,635.00 (difference -110.00).",
+          "data": {
+            "field": "Total",
+            "stated": 15525.0,
+            "computed": 15635.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1007",
+        "vendor": "MegaWidgets Corp",
+        "vendor_address": null,
+        "invoice_date": "2026-01-28",
+        "due_date": "2026-02-28",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 20.0,
+            "unit_price": 250.0,
+            "amount": 5000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 15.0,
+            "unit_price": 500.0,
+            "amount": 7500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 3.0,
+            "unit_price": 750.0,
+            "amount": 2250.0,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 14750.0,
+        "tax_rate": 0.06,
+        "tax_amount": 885.0,
+        "other_charges": [],
+        "total": 15525.0,
+        "payment_terms": null,
+        "notes": null
+      },
+      "amount_usd": 15525.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 2,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1007 (MegaWidgets Corp)**\n\n- **Blocking \u2014 stock exceeded:** WidgetA billed 20 units, only 15 in stock; WidgetB billed 15 units, only 10 in stock. GadgetX is within stock (3 billed, 5 on hand).\n- **Blocking \u2014 total mismatch:** Stated total is $15,525.00; recomputed total is $15,635.00 (subtotal $14,750.00 + tax $885.00). Difference is \u2212$110.00. Line amounts and subtotal match.\n- **No catalog price flags** (nothing more than 10% above catalog after FX).\n- **No duplicate** for vendor/number key `megawidgets|1007`. **No fraud signals.**\n- **USD amount due:** $15,525.00 (already USD, rate 1.0). Above the $10,000 threshold, so this is flagged for VP-level review.\n- **Info only:** payment terms are missing. Vendor, invoice number, line items, total, and due date are present.",
+      "provider": "grok",
+      "duration_ms": 74875,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1008.txt",
+      "run_id": "fdf2a8e7",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1008 from NoProd Industries for $9,900.00 USD is rejected. Both line items fail inventory lookup: SuperGizmo (qty 12 at $400.00) and MegaSprocket (qty 6 at $850.00) are not in the inventory system, with no records and no close matches. Unknown items are a blocking REJECT finding under company policy, so the invoice cannot be approved or sent only for review. Line math is consistent (computed total $9,900.00), currency is USD, and there is no duplicate, but those checks do not override the unknown items. The amount also sits just under the $10,000 VP-review threshold; that flag is noted but is not the basis for rejection.",
+      "reason_codes": [
+        "NEAR_THRESHOLD",
+        "UNKNOWN_ITEM"
+      ],
+      "findings": [
+        {
+          "code": "MISSING_FIELD",
+          "severity": "INFO",
+          "message": "No payment terms stated.",
+          "data": {
+            "field": "payment_terms"
+          }
+        },
+        {
+          "code": "UNKNOWN_ITEM",
+          "severity": "REJECT",
+          "message": "'SuperGizmo' is not in the inventory system.",
+          "data": {
+            "item": "SuperGizmo",
+            "requested": 12.0
+          }
+        },
+        {
+          "code": "UNKNOWN_ITEM",
+          "severity": "REJECT",
+          "message": "'MegaSprocket' is not in the inventory system.",
+          "data": {
+            "item": "MegaSprocket",
+            "requested": 6.0
+          }
+        },
+        {
+          "code": "NEAR_THRESHOLD",
+          "severity": "FLAG",
+          "message": "$9,900.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).",
+          "data": {
+            "amount_usd": 9900.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1008",
+        "vendor": "NoProd Industries",
+        "vendor_address": null,
+        "invoice_date": "2026-01-10",
+        "due_date": "2026-01-20",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "SuperGizmo",
+            "quantity": 12.0,
+            "unit_price": 400.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "MegaSprocket",
+            "quantity": 6.0,
+            "unit_price": 850.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": null,
+        "tax_rate": null,
+        "tax_amount": null,
+        "other_charges": [],
+        "total": 9900.0,
+        "payment_terms": null,
+        "notes": "Please process at your earliest convenience."
+      },
+      "amount_usd": 9900.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "- **Unknown items (blocking):** SuperGizmo (qty 12) and MegaSprocket (qty 6) are not in inventory. Name lookup found no records and no close matches.\n- **Threshold risk:** Amount due is $9,900.00 USD, just under the $10,000 VP-review threshold (possible threshold avoidance).\n- **Arithmetic:** Line math checks out \u2014 computed subtotal and total both $9,900.00; no mismatches.\n- **Other checks clear:** No catalog price flags, no duplicate (dedupe key noproductindustries|1008), currency already USD at 1.0. Payment terms are missing (info only). Notes are routine (\u201cprocess at your earliest convenience\u201d), not a strong fraud signal.",
+      "provider": "grok",
+      "duration_ms": 31695,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1009.json",
+      "run_id": "89a0ead7",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1009 is rejected and must not be paid. The vendor name is blank, so there is no identifiable payee. WidgetA has a non-positive quantity of -5, which is not a valid purchase quantity (WidgetB quantity 2 is in stock, but that does not cure the negative line). Arithmetic does not reconcile: the invoice states a subtotal of $1,000.00 while the line items compute to -$250.00 (difference of $1,250.00), and the stated total of -$250.00 does not match the computed total of $1,000.00. The amount due is -$250.00 USD, so nothing is payable. A missing due date is noted but is not required for this rejection.",
+      "reason_codes": [
+        "INVALID_AMOUNT",
+        "MISSING_FIELD",
+        "NEGATIVE_QTY",
+        "TOTAL_MISMATCH"
+      ],
+      "findings": [
+        {
+          "code": "MISSING_FIELD",
+          "severity": "REJECT",
+          "message": "Missing vendor name; cannot identify who to pay.",
+          "data": {
+            "field": "vendor"
+          }
+        },
+        {
+          "code": "MISSING_FIELD",
+          "severity": "FLAG",
+          "message": "No due date on the invoice.",
+          "data": {
+            "field": "due_date"
+          }
+        },
+        {
+          "code": "MISSING_FIELD",
+          "severity": "INFO",
+          "message": "No payment terms stated.",
+          "data": {
+            "field": "payment_terms"
+          }
+        },
+        {
+          "code": "NEGATIVE_QTY",
+          "severity": "REJECT",
+          "message": "'WidgetA' has non-positive quantity -5.",
+          "data": {
+            "item": "WidgetA",
+            "quantity": -5.0
+          }
+        },
+        {
+          "code": "TOTAL_MISMATCH",
+          "severity": "REJECT",
+          "message": "Subtotal: invoice states 1,000.00, computed -250.00 (difference +1,250.00).",
+          "data": {
+            "field": "Subtotal",
+            "stated": 1000.0,
+            "computed": -250.0
+          }
+        },
+        {
+          "code": "TOTAL_MISMATCH",
+          "severity": "REJECT",
+          "message": "Total: invoice states -250.00, computed 1,000.00 (difference -1,250.00).",
+          "data": {
+            "field": "Total",
+            "stated": -250.0,
+            "computed": 1000.0
+          }
+        },
+        {
+          "code": "INVALID_AMOUNT",
+          "severity": "REJECT",
+          "message": "Amount due is -250.00; nothing payable.",
+          "data": {
+            "amount": -250.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1009",
+        "vendor": "",
+        "vendor_address": null,
+        "invoice_date": "2026-01-15",
+        "due_date": null,
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": -5.0,
+            "unit_price": 250.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 2.0,
+            "unit_price": 500.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 1000.0,
+        "tax_rate": 0.0,
+        "tax_amount": 0.0,
+        "other_charges": [],
+        "total": -250.0,
+        "payment_terms": null,
+        "notes": null
+      },
+      "amount_usd": -250.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1009**\n\n- **REJECT \u2014 missing vendor:** vendor name is blank, so the payee cannot be identified. Duplicate check used key `unknown-vendor|1009` and found no match.\n- **REJECT \u2014 negative quantity:** WidgetA quantity is **-5** (non-positive). Inventory shows WidgetA in stock 15 and WidgetB requested 2 / in stock 10; no unknown items.\n- **REJECT \u2014 arithmetic mismatch:** subtotal stated **1,000.00**, computed **-250.00** (difference +1,250.00). Total stated **-250.00**, computed **1,000.00** (difference -1,250.00).\n- **REJECT \u2014 nothing payable:** amount due is **-250.00** USD (FX rate 1.0). Below the $10,000 VP-review threshold, but not a payable amount.\n- **FLAG \u2014 no due date.** No payment terms stated (info only). Catalog prices and fraud signals: no findings.",
+      "provider": "grok",
+      "duration_ms": 32426,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1010.txt",
+      "run_id": "eda24275",
+      "outcome": "APPROVED",
+      "rationale": "INV-1010 from Consolidated Materials Group totals $7,185.00 USD, under the $10,000 VP-review threshold. Arithmetic checks out (subtotal $6,700, tax $335, shipping $150), stock covers all quantities, and there is no duplicate or fraud signal. The only flag is a rush-order WidgetA line at $300.00 versus the $250.00 catalog price (+20%, $200.00 extra on 4 units). That premium is noted on the line and does not, by itself, make the invoice look risky enough to hold. Approve and pay Net 30; AP can note the $200.00 rush premium against the catalog if cost tracking requires it.",
+      "reason_codes": [
+        "PRICE_VARIANCE"
+      ],
+      "findings": [
+        {
+          "code": "PRICE_VARIANCE",
+          "severity": "FLAG",
+          "message": "'WidgetA' (rush order) billed at $300.00, +20% vs catalog $250.00.",
+          "data": {
+            "item": "WidgetA",
+            "unit_price_usd": 300.0,
+            "catalog": 250.0,
+            "variance": 0.2
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1010",
+        "vendor": "Consolidated Materials Group",
+        "vendor_address": null,
+        "invoice_date": "2026-01-27",
+        "due_date": "2026-02-26",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 8.0,
+            "unit_price": 250.0,
+            "amount": 2000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 4.0,
+            "unit_price": 500.0,
+            "amount": 2000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 2.0,
+            "unit_price": 750.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetA",
+            "quantity": 4.0,
+            "unit_price": 300.0,
+            "amount": 1200.0,
+            "note": "rush order",
+            "description": null
+          }
+        ],
+        "subtotal": 6700.0,
+        "tax_rate": null,
+        "tax_amount": 335.0,
+        "other_charges": [
+          {
+            "label": "Shipping",
+            "amount": 150.0
+          }
+        ],
+        "total": 7185.0,
+        "payment_terms": "Net 30",
+        "notes": "Thank you for your business!"
+      },
+      "amount_usd": 7185.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Consolidated Materials Group",
+        "amount_usd": 7185.0,
+        "original_amount": 7185.0,
+        "currency": "USD",
+        "payment_ref": "PAY-EA2C937B0C36",
+        "paid_at": "2026-10-02T08:53:41+00:00",
+        "error": null
+      },
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1010 (Consolidated Materials Group)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No blocking gaps.\n- **Arithmetic:** Line amounts, subtotal ($6,700), tax ($335), shipping ($150), and total ($7,185) all recompute cleanly.\n- **Inventory:** Quantities covered \u2014 WidgetA 12 requested / 15 in stock, WidgetB 4 / 10, GadgetX 2 / 5. No unknown items.\n- **Catalog price flag:** WidgetA \u201crush order\u201d line billed at $300.00 vs catalog $250.00 (+20%, above the 10% threshold). Other lines match catalog.\n- **Duplicate / fraud:** No paid or pending match on vendor+number; no fraud signals (pressure language, wire demands, bad due date, or rename).\n- **USD amount:** $7,185.00 USD (currency already USD, rate 1.0) \u2014 under the $10,000 VP-review threshold.",
+      "provider": "grok",
+      "duration_ms": 43405,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1011.pdf",
+      "run_id": "0a5752b9",
+      "outcome": "APPROVED",
+      "rationale": "Invoice INV-1011 from Summit Manufacturing Co. for $3,000.00 USD is approved. Line items recompute exactly (WidgetA 6 \u00d7 $250.00 = $1,500.00; WidgetB 3 \u00d7 $500.00 = $1,500.00; total $3,000.00), both SKUs are known and in stock (15 and 10 on hand), currency is USD, and there is no paid or pending duplicate on dedupe key summitmanufacturing|1011. The amount is below the $10,000 VP-review threshold, and there are no fraud signals or REJECT/REVIEW findings. Missing payment terms is informational only and does not block payment; due date is 2026-02-20.",
+      "reason_codes": [],
+      "findings": [
+        {
+          "code": "MISSING_FIELD",
+          "severity": "INFO",
+          "message": "No payment terms stated.",
+          "data": {
+            "field": "payment_terms"
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1011",
+        "vendor": "Summit Manufacturing Co.",
+        "vendor_address": null,
+        "invoice_date": "2026-01-20",
+        "due_date": "2026-02-20",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 6.0,
+            "unit_price": 250.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 3.0,
+            "unit_price": 500.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": null,
+        "tax_rate": null,
+        "tax_amount": null,
+        "other_charges": [],
+        "total": 3000.0,
+        "payment_terms": null,
+        "notes": null
+      },
+      "amount_usd": 3000.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Summit Manufacturing Co.",
+        "amount_usd": 3000.0,
+        "original_amount": 3000.0,
+        "currency": "USD",
+        "payment_ref": "PAY-83CADB439853",
+        "paid_at": "2026-10-02T08:54:10+00:00",
+        "error": null
+      },
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1011 (Summit Manufacturing Co.)**\n\n- **Required fields:** Vendor, invoice number, line items, total ($3,000.00), and due date (2026-02-20) are present. Payment terms are missing (INFO only; not blocking).\n- **Inventory:** WidgetA (6 requested, 15 in stock) and WidgetB (3 requested, 10 in stock) both match known items; no unknown SKUs.\n- **Arithmetic:** Line amounts (6 \u00d7 $250 = $1,500; 3 \u00d7 $500 = $1,500) recompute to subtotal and total of $3,000.00; no mismatches.\n- **Catalog prices:** No unit prices more than 10% above catalog.\n- **Duplicate:** No paid or pending invoice for this vendor and number (dedupe key `summitmanufacturing|1011`).\n- **USD / fraud:** Amount due is $3,000.00 USD (below the $10,000 VP-review threshold). No fraud signals.",
+      "provider": "grok",
+      "duration_ms": 29292,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1011.txt",
+      "run_id": "244af9fa",
+      "outcome": "NEEDS_HUMAN_REVIEW",
+      "rationale": "INV-1011 from Summit Manufacturing Co. for $3,000.00 USD is an identical copy of invoice_1011.pdf, which is already paid under payment reference PAY-83CADB439853. Nothing differs from the paid copy: WidgetA quantity 6 at $250.00 ($1,500.00) and WidgetB quantity 3 at $500.00 ($1,500.00) are unchanged, and the total is still $3,000.00 (delta $0.00). Arithmetic, stock, and catalog checks are clean, and the amount is below the $10,000 VP threshold, but a paid duplicate must not be paid again without confirmation. A reviewer should verify that PAY-83CADB439853 settled this exact invoice and that this submission is not a second billing that should be voided rather than paid.",
+      "reason_codes": [
+        "DUPLICATE"
+      ],
+      "findings": [
+        {
+          "code": "DUPLICATE",
+          "severity": "REVIEW",
+          "message": "Identical copy of INV-1011 from invoice_1011.pdf, which is already paid.",
+          "data": {
+            "prior_source": "invoice_1011.pdf",
+            "prior_status": "PAID",
+            "prior_payment_ref": "PAY-83CADB439853",
+            "kind": "identical copy",
+            "diff": {
+              "line_changes": [],
+              "prior_total": 3000.0,
+              "new_total": 3000.0,
+              "total_delta": 0.0,
+              "identical": true
+            }
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1011",
+        "vendor": "Summit Manufacturing Co.",
+        "vendor_address": null,
+        "invoice_date": "2026-01-20",
+        "due_date": "2026-02-20",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 6.0,
+            "unit_price": 250.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 3.0,
+            "unit_price": 500.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 3000.0,
+        "tax_rate": 0.0,
+        "tax_amount": 0.0,
+        "other_charges": [],
+        "total": 3000.0,
+        "payment_terms": "Net 30",
+        "notes": null
+      },
+      "amount_usd": 3000.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1011 (Summit Manufacturing Co.)**\n\n- **Duplicate (REVIEW):** Identical copy of INV-1011 from `invoice_1011.pdf`, already **PAID** (payment ref `PAY-83CADB439853`). Same lines and total ($3,000.00); no differences.\n- **Required fields:** Vendor, invoice number, line items, total, and due date are present.\n- **Arithmetic:** Line amounts, subtotal, tax, and total recompute to $3,000.00; no mismatches.\n- **Inventory:** WidgetA 6 requested (15 in stock); WidgetB 3 requested (10 in stock). No unknown items.\n- **Catalog prices / fraud:** No unit-price flags (>10% over catalog) and no fraud signals.\n- **USD amount:** $3,000.00 USD (rate 1.0). Below the $10,000 VP-review threshold.",
+      "provider": "grok",
+      "duration_ms": 27369,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1012.pdf",
+      "run_id": "6214ab6f",
+      "outcome": "NEEDS_HUMAN_REVIEW",
+      "rationale": "Policy would auto-approve INV 1012 from QuickShip Distributers for $9,975.00 USD: required fields are present, stock covers WidgetA (12), WidgetB (7), and GadgetX (4), arithmetic checks out (subtotal $9,500.00, tax $475.00 at 5%, total $9,975.00), and there is no duplicate. Two risk flags together still warrant a hold. The notes say the vendor was \u201cformerly FastShip Ltd.,\u201d so bank details must be confirmed against the vendor on file before any payment, and the total sits only $25.00 under the $10,000 VP-review threshold, which looks like possible threshold avoidance. A reviewer should verify the legal name change and payee bank details, and confirm the amount and PO-20260115 were not structured to stay under VP scrutiny.",
+      "reason_codes": [
+        "NEAR_THRESHOLD",
+        "VENDOR_RENAMED"
+      ],
+      "findings": [
+        {
+          "code": "VENDOR_RENAMED",
+          "severity": "FLAG",
+          "message": "Vendor indicates a name change ('formerly'); confirm bank details match the vendor on file.",
+          "data": {}
+        },
+        {
+          "code": "NEAR_THRESHOLD",
+          "severity": "FLAG",
+          "message": "$9,975.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).",
+          "data": {
+            "amount_usd": 9975.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV 1012",
+        "vendor": "QuickShip Distributers",
+        "vendor_address": null,
+        "invoice_date": "2026-01-26",
+        "due_date": "2026-02-25",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 12.0,
+            "unit_price": 250.0,
+            "amount": 3000.0,
+            "note": null,
+            "description": "Widget A"
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 7.0,
+            "unit_price": 500.0,
+            "amount": 3500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 4.0,
+            "unit_price": 750.0,
+            "amount": 3000.0,
+            "note": null,
+            "description": "Gadget X"
+          }
+        ],
+        "subtotal": 9500.0,
+        "tax_rate": 0.05,
+        "tax_amount": 475.0,
+        "other_charges": [],
+        "total": 9975.0,
+        "payment_terms": "Net 30",
+        "notes": "formerly FastShip Ltd. Ref PO-20260115. Deliver to warehouse dock B. Contact Jim at ext 4421 with questions."
+      },
+      "amount_usd": 9975.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_policy_disagreement": true,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV 1012 (QuickShip Distributers)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No blocking gaps.\n- **Inventory:** WidgetA (12 of 15), WidgetB (7 of 10), and GadgetX (4 of 5) are all in stock. No unknown items.\n- **Arithmetic:** Line amounts, subtotal ($9,500), tax ($475 at 5%), and total ($9,975) all recompute cleanly.\n- **Catalog prices:** No unit prices more than 10% above catalog.\n- **Duplicate:** No paid or pending invoice for this vendor and number (`quickshipdistributers|1012`).\n- **Risk flags (non-blocking):**\n  - **VENDOR_RENAMED:** Notes say \u201cformerly FastShip Ltd.\u201d Confirm bank details match the vendor on file before payment.\n  - **NEAR_THRESHOLD:** Amount due is **$9,975.00 USD** (already USD; rate 1.0), just under the $10,000 VP-review threshold \u2014 possible threshold avoidance.",
+      "provider": "grok",
+      "duration_ms": 43904,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1012.txt",
+      "run_id": "c453e333",
+      "outcome": "NEEDS_HUMAN_REVIEW",
+      "rationale": "INV 1012 from QuickShip Distributers is an identical copy of the invoice already on file from invoice_1012.pdf, which is awaiting human review. Nothing differs: WidgetA (12 \u00d7 $250.00 = $3,000.00), WidgetB (7 \u00d7 $500.00 = $3,500.00), and GadgetX (4 \u00d7 $750.00 = $3,000.00) are unchanged, as are the subtotal ($9,500.00), tax ($475.00), and total ($9,975.00 USD; delta $0.00). Do not pay both copies. A reviewer should confirm this text file is a resubmission of the PDF already in review and close one of the two before any payment. Also confirm bank details match the vendor on file, because the notes say the vendor was formerly FastShip Ltd., and note that $9,975.00 sits just under the $10,000 VP-review threshold.",
+      "reason_codes": [
+        "DUPLICATE",
+        "NEAR_THRESHOLD",
+        "VENDOR_RENAMED"
+      ],
+      "findings": [
+        {
+          "code": "DUPLICATE",
+          "severity": "REVIEW",
+          "message": "Identical copy of INV 1012 from invoice_1012.pdf, which is already awaiting human review.",
+          "data": {
+            "prior_source": "invoice_1012.pdf",
+            "prior_status": "REVIEW",
+            "prior_payment_ref": null,
+            "kind": "identical copy",
+            "diff": {
+              "line_changes": [],
+              "prior_total": 9975.0,
+              "new_total": 9975.0,
+              "total_delta": 0.0,
+              "identical": true
+            }
+          }
+        },
+        {
+          "code": "VENDOR_RENAMED",
+          "severity": "FLAG",
+          "message": "Vendor indicates a name change ('formerly'); confirm bank details match the vendor on file.",
+          "data": {}
+        },
+        {
+          "code": "NEAR_THRESHOLD",
+          "severity": "FLAG",
+          "message": "$9,975.00 is just under the $10,000 VP-review threshold (possible threshold avoidance).",
+          "data": {
+            "amount_usd": 9975.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV 1012",
+        "vendor": "QuickShip Distributers",
+        "vendor_address": null,
+        "invoice_date": "2026-01-26",
+        "due_date": "2026-02-25",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 12.0,
+            "unit_price": 250.0,
+            "amount": 3000.0,
+            "note": null,
+            "description": "Widget A"
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 7.0,
+            "unit_price": 500.0,
+            "amount": 3500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 4.0,
+            "unit_price": 750.0,
+            "amount": 3000.0,
+            "note": null,
+            "description": "Gadget X"
+          }
+        ],
+        "subtotal": 9500.0,
+        "tax_rate": 0.05,
+        "tax_amount": 475.0,
+        "other_charges": [],
+        "total": 9975.0,
+        "payment_terms": "Net 30",
+        "notes": "formerly FastShip Ltd. Ref PO-20260115. Deliver to warehouse dock B. Contact Jim at ext 4421 with questions."
+      },
+      "amount_usd": 9975.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_outcome": "NEEDS_HUMAN_REVIEW",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV 1012 (QuickShip Distributers)**\n\n- **Duplicate (REVIEW):** Identical copy of INV 1012 already on file from `invoice_1012.pdf` (status REVIEW). Same total ($9,975.00); no line changes. Dedupe key `quickshipdistributers|1012`.\n- **Vendor rename (FLAG):** Notes say \u201cformerly FastShip Ltd.\u201d Confirm bank details match the vendor on file before payment.\n- **Near threshold (FLAG):** Amount due is $9,975.00 USD, just under the $10,000 VP-review threshold (possible threshold avoidance).\n- **Clean checks:** Required fields present; arithmetic matches (subtotal $9,500.00, tax $475.00, total $9,975.00); catalog prices within tolerance; inventory covers WidgetA (12/15), WidgetB (7/10), and GadgetX (4/5). Currency is already USD (rate 1.0).",
+      "provider": "grok",
+      "duration_ms": 42132,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1013.json",
+      "run_id": "8ad821d2",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1013 from Atlas Industrial Supply for $22,562.80 USD is rejected. Stock is insufficient on every billed item: WidgetA is billed for 22 units across 3 lines but only 15 are in stock, WidgetB is billed for 18 units across 2 lines but only 10 are in stock, and GadgetX is billed for 9 units across 3 lines but only 5 are in stock. The stated total of $22,562.80 is also $50.00 higher than the recomputed total of $22,512.80 (subtotal $21,040.00 plus 7% tax of $1,472.80). These are blocking findings, so the invoice cannot be paid as submitted. The amount is above $10,000, but VP scrutiny does not override the reject.",
+      "reason_codes": [
+        "STOCK_EXCEEDED",
+        "TOTAL_MISMATCH",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetA': 22 units billed across 3 lines, only 15 in stock.",
+          "data": {
+            "item": "WidgetA",
+            "requested": 22.0,
+            "in_stock": 15,
+            "lines": 3
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetB': 18 units billed across 2 lines, only 10 in stock.",
+          "data": {
+            "item": "WidgetB",
+            "requested": 18.0,
+            "in_stock": 10,
+            "lines": 2
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'GadgetX': 9 units billed across 3 lines, only 5 in stock.",
+          "data": {
+            "item": "GadgetX",
+            "requested": 9.0,
+            "in_stock": 5,
+            "lines": 3
+          }
+        },
+        {
+          "code": "TOTAL_MISMATCH",
+          "severity": "REJECT",
+          "message": "Total: invoice states 22,562.80, computed 22,512.80 (difference +50.00).",
+          "data": {
+            "field": "Total",
+            "stated": 22562.8,
+            "computed": 22512.8
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1013",
+        "vendor": "Atlas Industrial Supply",
+        "vendor_address": "500 Commerce Blvd, Detroit, MI 48201",
+        "invoice_date": "2026-01-24",
+        "due_date": "2026-03-24",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 15.0,
+            "unit_price": 250.0,
+            "amount": 3750.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 10.0,
+            "unit_price": 500.0,
+            "amount": 5000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 5.0,
+            "unit_price": 750.0,
+            "amount": 3750.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetA",
+            "quantity": 5.0,
+            "unit_price": 240.0,
+            "amount": 1200.0,
+            "note": "Volume discount",
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 8.0,
+            "unit_price": 480.0,
+            "amount": 3840.0,
+            "note": "Volume discount",
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 3.0,
+            "unit_price": 750.0,
+            "amount": 2250.0,
+            "note": "Expedited",
+            "description": null
+          },
+          {
+            "item": "WidgetA",
+            "quantity": 2.0,
+            "unit_price": 250.0,
+            "amount": 500.0,
+            "note": "Replacement",
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 1.0,
+            "unit_price": 750.0,
+            "amount": 750.0,
+            "note": "Sample",
+            "description": null
+          }
+        ],
+        "subtotal": 21040.0,
+        "tax_rate": 0.07,
+        "tax_amount": 1472.8,
+        "other_charges": [],
+        "total": 22562.8,
+        "payment_terms": "Net 60",
+        "notes": null
+      },
+      "amount_usd": 22562.8,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1013 (Atlas Industrial Supply)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No extraction warnings.\n- **Blocking \u2014 stock exceeded:** WidgetA billed 22 across 3 lines, only 15 in stock; WidgetB billed 18 across 2 lines, only 10 in stock; GadgetX billed 9 across 3 lines, only 5 in stock.\n- **Blocking \u2014 total mismatch:** Invoice total is 22,562.80; recomputed total is 22,512.80 (stated total is $50.00 high). Subtotal 21,040.00 and tax 1,472.80 match the lines and 7% rate.\n- **Catalog prices:** No unit prices more than 10% above catalog.\n- **Duplicate check:** No paid or pending invoice for this vendor and number (`atlasindustrialsupply|1013`).\n- **Amount / fraud:** 22,562.80 USD (rate 1.0) \u2014 above $10,000, so VP-level review applies. No fraud signals.",
+      "provider": "grok",
+      "duration_ms": 41872,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1013.pdf",
+      "run_id": "b85d1a44",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1013 from Atlas Industrial Supply is rejected. Three items are billed for more units than are in stock: WidgetA 22 units across three lines versus 15 on hand, WidgetB 18 units across two lines versus 10 on hand, and GadgetX 9 units across three lines versus 5 on hand. The stated total of $22,562.80 USD also does not match the recomputed total of $22,512.80 USD (a $50.00 overstatement); the subtotal of $21,040.00 and 7% tax of $1,472.80 are consistent, so the error is in the invoice total. These REJECT-severity findings require rejection even though the amount is above the $10,000 VP threshold. A prior copy of this invoice number was rejected and no copy was paid, so this is a fresh rejection, not a duplicate payment.",
+      "reason_codes": [
+        "STOCK_EXCEEDED",
+        "TOTAL_MISMATCH",
+        "VP_REVIEW"
+      ],
+      "findings": [
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetA': 22 units billed across 3 lines, only 15 in stock.",
+          "data": {
+            "item": "WidgetA",
+            "requested": 22.0,
+            "in_stock": 15,
+            "lines": 3
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'WidgetB': 18 units billed across 2 lines, only 10 in stock.",
+          "data": {
+            "item": "WidgetB",
+            "requested": 18.0,
+            "in_stock": 10,
+            "lines": 2
+          }
+        },
+        {
+          "code": "STOCK_EXCEEDED",
+          "severity": "REJECT",
+          "message": "'GadgetX': 9 units billed across 3 lines, only 5 in stock.",
+          "data": {
+            "item": "GadgetX",
+            "requested": 9.0,
+            "in_stock": 5,
+            "lines": 3
+          }
+        },
+        {
+          "code": "TOTAL_MISMATCH",
+          "severity": "REJECT",
+          "message": "Total: invoice states 22,562.80, computed 22,512.80 (difference +50.00).",
+          "data": {
+            "field": "Total",
+            "stated": 22562.8,
+            "computed": 22512.8
+          }
+        },
+        {
+          "code": "PREVIOUSLY_PROCESSED",
+          "severity": "INFO",
+          "message": "Seen before (invoice_1013.json: REJECTED); re-evaluated from scratch because no copy was paid.",
+          "data": {
+            "history": [
+              "invoice_1013.json"
+            ]
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1013",
+        "vendor": "Atlas Industrial Supply",
+        "vendor_address": null,
+        "invoice_date": "2026-01-24",
+        "due_date": "2026-03-24",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 15.0,
+            "unit_price": 250.0,
+            "amount": 3750.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 10.0,
+            "unit_price": 500.0,
+            "amount": 5000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 5.0,
+            "unit_price": 750.0,
+            "amount": 3750.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetA",
+            "quantity": 5.0,
+            "unit_price": 240.0,
+            "amount": 1200.0,
+            "note": "Volume discount",
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 8.0,
+            "unit_price": 480.0,
+            "amount": 3840.0,
+            "note": "Volume discount",
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 3.0,
+            "unit_price": 750.0,
+            "amount": 2250.0,
+            "note": "Expedited",
+            "description": null
+          },
+          {
+            "item": "WidgetA",
+            "quantity": 2.0,
+            "unit_price": 250.0,
+            "amount": 500.0,
+            "note": "Replacement",
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 1.0,
+            "unit_price": 750.0,
+            "amount": 750.0,
+            "note": "Sample",
+            "description": null
+          }
+        ],
+        "subtotal": 21040.0,
+        "tax_rate": 0.07,
+        "tax_amount": 1472.8,
+        "other_charges": [],
+        "total": 22562.8,
+        "payment_terms": "Net 60",
+        "notes": null
+      },
+      "amount_usd": 22562.8,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": true,
+      "payment": null,
+      "extraction_method": "llm",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1013 (Atlas Industrial Supply)**\n\n- **Blocking \u2014 stock exceeded:** WidgetA billed 22 units across 3 lines, only 15 in stock; WidgetB billed 18 across 2 lines, only 10 in stock; GadgetX billed 9 across 3 lines, only 5 in stock.\n- **Blocking \u2014 total mismatch:** Invoice states $22,562.80; recomputed total is $22,512.80 (difference +$50.00). Subtotal $21,040.00 and tax match.\n- **Info \u2014 prior rejection:** Same vendor/number seen in `invoice_1013.json` as REJECTED; re-checked from scratch because no copy was paid.\n- **No other flags:** Required fields present; catalog prices within 10%; no fraud signals. Amount due is **$22,562.80 USD** (above $10,000 \u2014 VP-level review).",
+      "provider": "grok",
+      "duration_ms": 50639,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1014.xml",
+      "run_id": "af7911f3",
+      "outcome": "APPROVED",
+      "rationale": "INV-1014 from TechParts International is approved. The invoice total of 4,125.00 EUR converts at the stated rate of 1.08 to $4,455.00 USD, which is below the $10,000 VP-scrutiny threshold. Line items recompute cleanly (WidgetA 4 \u00d7 225.00 and WidgetB 6 \u00d7 475.00 = 3,750.00 subtotal; 10% tax of 375.00; total 4,125.00 EUR), both items are in stock, catalog prices are within tolerance, and there is no duplicate on key techpartsinternational|1014. The only finding is informational currency conversion; there are no reject-severity issues, review-severity findings, or fraud signals.",
+      "reason_codes": [],
+      "findings": [
+        {
+          "code": "CURRENCY_CONVERTED",
+          "severity": "INFO",
+          "message": "4,125.00 EUR converted at 1.08 = $4,455.00 (static mock rate).",
+          "data": {
+            "currency": "EUR",
+            "rate": 1.08,
+            "amount_usd": 4455.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1014",
+        "vendor": "TechParts International",
+        "vendor_address": null,
+        "invoice_date": "2026-01-26",
+        "due_date": "2026-02-26",
+        "currency": "EUR",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 4.0,
+            "unit_price": 225.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 6.0,
+            "unit_price": 475.0,
+            "amount": null,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 3750.0,
+        "tax_rate": 0.1,
+        "tax_amount": 375.0,
+        "other_charges": [],
+        "total": 4125.0,
+        "payment_terms": "Net 30",
+        "notes": null
+      },
+      "amount_usd": 4455.0,
+      "fx_rate": 1.08,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "TechParts International",
+        "amount_usd": 4455.0,
+        "original_amount": 4125.0,
+        "currency": "EUR",
+        "payment_ref": "PAY-E228EE0987A8",
+        "paid_at": "2026-10-02T08:57:57+00:00",
+        "error": null
+      },
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1014 (TechParts International)**\n\n- **Required fields:** Present (vendor, invoice number, line items, total, due date). No blocking gaps.\n- **Inventory:** WidgetA 4 requested / 15 in stock; WidgetB 6 requested / 10 in stock. No unknown items or stock shortfalls.\n- **Arithmetic:** Subtotal 3,750.00 and total 4,125.00 EUR recompute cleanly (tax 375.00 at 10%). No mismatches.\n- **Catalog prices:** No unit prices more than 10% above catalog after FX.\n- **Duplicate check:** No paid or pending invoice on key `techpartsinternational|1014`.\n- **FX / fraud:** 4,125.00 EUR converts at 1.08 to **$4,455.00 USD** (below the $10,000 VP-review threshold). No fraud signals.",
+      "provider": "grok",
+      "duration_ms": 21016,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1015.csv",
+      "run_id": "7edf0e30",
+      "outcome": "APPROVED",
+      "rationale": "INV-1015 from Reliable Components Inc. is approved for payment of $6,500.00 USD. Line items recompute cleanly (WidgetA 10 \u00d7 $250.00 = $2,500.00, WidgetB 5 \u00d7 $500.00 = $2,500.00, GadgetX 2 \u00d7 $750.00 = $1,500.00; subtotal and total $6,500.00 with no tax). All quantities are in stock, catalog prices are within tolerance, currency is USD, and there is no paid or pending duplicate for this vendor and invoice number. The only finding is missing payment terms, which is informational and not a risk flag. The amount is below the $10,000 VP-review threshold and there are no fraud signals.",
+      "reason_codes": [],
+      "findings": [
+        {
+          "code": "MISSING_FIELD",
+          "severity": "INFO",
+          "message": "No payment terms stated.",
+          "data": {
+            "field": "payment_terms"
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1015",
+        "vendor": "Reliable Components Inc.",
+        "vendor_address": null,
+        "invoice_date": "2026-01-29",
+        "due_date": "2026-02-28",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 10.0,
+            "unit_price": 250.0,
+            "amount": 2500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 5.0,
+            "unit_price": 500.0,
+            "amount": 2500.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "GadgetX",
+            "quantity": 2.0,
+            "unit_price": 750.0,
+            "amount": 1500.0,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 6500.0,
+        "tax_rate": 0.0,
+        "tax_amount": 0.0,
+        "other_charges": [],
+        "total": 6500.0,
+        "payment_terms": null,
+        "notes": null
+      },
+      "amount_usd": 6500.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "APPROVED",
+      "llm_outcome": "APPROVED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": {
+        "status": "success",
+        "vendor": "Reliable Components Inc.",
+        "amount_usd": 6500.0,
+        "original_amount": 6500.0,
+        "currency": "USD",
+        "payment_ref": "PAY-2B9CE12FED20",
+        "paid_at": "2026-10-02T08:58:20+00:00",
+        "error": null
+      },
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1015 (Reliable Components Inc.)**\n\n- **Required fields:** Vendor, invoice number, line items, total, and due date are present. Payment terms are missing (info only, not blocking).\n- **Inventory:** All billed quantities are covered \u2014 WidgetA 10 of 15 in stock, WidgetB 5 of 10, GadgetX 2 of 5. No unknown items.\n- **Arithmetic:** Line amounts, subtotal, tax, and total recompute cleanly to **$6,500.00**. No mismatches.\n- **Catalog prices:** No unit prices more than 10% above catalog.\n- **Duplicate check:** No paid or pending invoice for this vendor and number (`reliablecomponents|1015`).\n- **FX / fraud:** Amount due is **$6,500.00 USD** (rate 1.0), below the $10,000 VP-review threshold. No fraud signals.",
+      "provider": "grok",
+      "duration_ms": 22897,
+      "error": null
+    },
+    {
+      "source_file": "invoice_1016.json",
+      "run_id": "5366e4c9",
+      "outcome": "REJECTED",
+      "rationale": "Invoice INV-1016 from Widgets Inc. is rejected because line item WidgetC (quantity 3 at $350.00, amount $1,050.00) is not in the inventory system. Closest catalog names are WidgetA, WidgetB, and GadgetX, with no near-match for WidgetC. Known lines check out: WidgetA (4 requested, 15 in stock) and WidgetB (2 requested, 10 in stock), and arithmetic is consistent (subtotal $3,050.00, tax $183.00, total $3,233.00 USD). There are no duplicate or fraud signals and the amount is below the $10,000 VP threshold, but an unknown item is a blocking reject under policy. Do not pay until the vendor corrects the item code or procurement confirms a valid catalog SKU and reissues the invoice.",
+      "reason_codes": [
+        "UNKNOWN_ITEM"
+      ],
+      "findings": [
+        {
+          "code": "UNKNOWN_ITEM",
+          "severity": "REJECT",
+          "message": "'WidgetC' is not in the inventory system.",
+          "data": {
+            "item": "WidgetC",
+            "requested": 3.0
+          }
+        }
+      ],
+      "invoice": {
+        "invoice_number": "INV-1016",
+        "vendor": "Widgets Inc.",
+        "vendor_address": "100 Main St, Chicago, IL 60601",
+        "invoice_date": "2026-01-27",
+        "due_date": "2026-02-27",
+        "currency": "USD",
+        "line_items": [
+          {
+            "item": "WidgetA",
+            "quantity": 4.0,
+            "unit_price": 250.0,
+            "amount": 1000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetB",
+            "quantity": 2.0,
+            "unit_price": 500.0,
+            "amount": 1000.0,
+            "note": null,
+            "description": null
+          },
+          {
+            "item": "WidgetC",
+            "quantity": 3.0,
+            "unit_price": 350.0,
+            "amount": 1050.0,
+            "note": null,
+            "description": null
+          }
+        ],
+        "subtotal": 3050.0,
+        "tax_rate": 0.06,
+        "tax_amount": 183.0,
+        "other_charges": [],
+        "total": 3233.0,
+        "payment_terms": "Net 30",
+        "notes": null
+      },
+      "amount_usd": 3233.0,
+      "fx_rate": 1.0,
+      "policy_outcome": "REJECTED",
+      "llm_outcome": "REJECTED",
+      "llm_policy_disagreement": false,
+      "vp_review": false,
+      "payment": null,
+      "extraction_method": "deterministic",
+      "extraction_attempts": 1,
+      "reflection_rounds": 1,
+      "validator_tool_calls": [
+        "check_required_fields",
+        "check_inventory",
+        "verify_arithmetic",
+        "check_catalog_prices",
+        "check_duplicate",
+        "convert_to_usd",
+        "fraud_signals"
+      ],
+      "guard_invoked": [],
+      "validation_summary": "**Validation summary \u2014 INV-1016 (Widgets Inc.)**\n\n- **Blocking \u2014 unknown item:** `WidgetC` (qty 3) is not in inventory. Closest names are WidgetB, WidgetA, and GadgetX \u2014 no near-match for WidgetC.\n- **Inventory OK for known items:** WidgetA 4 requested / 15 in stock; WidgetB 2 requested / 10 in stock.\n- **Required fields:** vendor, invoice number, line items, total, and due date are present.\n- **Arithmetic:** line amounts, subtotal $3,050.00, tax $183.00, and total $3,233.00 all match.\n- **Catalog prices, duplicates, fraud:** no price flags (>10% over catalog), no paid/pending duplicate (`widgets|1016`), no fraud signals.\n- **USD amount:** $3,233.00 (rate 1.0). Below the $10,000 VP-review threshold.",
+      "provider": "grok",
+      "duration_ms": 19587,
+      "error": null
+    }
+  ]
+}

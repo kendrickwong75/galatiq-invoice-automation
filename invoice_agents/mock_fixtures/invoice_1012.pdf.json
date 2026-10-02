@@ -1,0 +1,81 @@
+{
+  "_comment": "Scripted Grok extraction output for the offline mock provider. Attempt 1 deliberately misreads 'Widget A 12' as 2 so the self-correction loop runs.",
+  "attempts": [
+    {
+      "invoice_number": "INV 1012",
+      "vendor": "QuickShip Distributers",
+      "vendor_address": null,
+      "invoice_date": "26-Jan-2026",
+      "due_date": "25-Feb-2026",
+      "currency": "USD",
+      "line_items": [
+        {
+          "item": "Widget A",
+          "quantity": 2,
+          "unit_price": 250.0,
+          "amount": 3000.0,
+          "note": null
+        },
+        {
+          "item": "WidgetB",
+          "quantity": 7,
+          "unit_price": 500.0,
+          "amount": 3500.0,
+          "note": null
+        },
+        {
+          "item": "Gadget X",
+          "quantity": 4,
+          "unit_price": 750.0,
+          "amount": 3000.0,
+          "note": null
+        }
+      ],
+      "subtotal": 9500.0,
+      "tax_rate": 0.05,
+      "tax_amount": 475.0,
+      "other_charges": [],
+      "total": 9975.0,
+      "payment_terms": "Net 30",
+      "notes": "(formerly FastShip Ltd.) Ref PO-20260115. Deliver to warehouse dock B. Contact Jim at ext 4421 with questions."
+    },
+    {
+      "invoice_number": "INV 1012",
+      "vendor": "QuickShip Distributers",
+      "vendor_address": null,
+      "invoice_date": "26-Jan-2026",
+      "due_date": "25-Feb-2026",
+      "currency": "USD",
+      "line_items": [
+        {
+          "item": "Widget A",
+          "quantity": 12,
+          "unit_price": 250.0,
+          "amount": 3000.0,
+          "note": null
+        },
+        {
+          "item": "WidgetB",
+          "quantity": 7,
+          "unit_price": 500.0,
+          "amount": 3500.0,
+          "note": null
+        },
+        {
+          "item": "Gadget X",
+          "quantity": 4,
+          "unit_price": 750.0,
+          "amount": 3000.0,
+          "note": null
+        }
+      ],
+      "subtotal": 9500.0,
+      "tax_rate": 0.05,
+      "tax_amount": 475.0,
+      "other_charges": [],
+      "total": 9975.0,
+      "payment_terms": "Net 30",
+      "notes": "(formerly FastShip Ltd.) Ref PO-20260115. Deliver to warehouse dock B. Contact Jim at ext 4421 with questions."
+    }
+  ]
+}

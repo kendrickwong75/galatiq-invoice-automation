@@ -1,0 +1,22 @@
+# Expected decisions for the provided sample invoices, processed as one batch in filename order on a fresh
+# database with LLM_PROVIDER=mock. `codes` must all be present in the result (extra codes are allowed).
+invoice_1001.txt:          {outcome: APPROVED, codes: []}
+invoice_1002.txt:          {outcome: REJECTED, codes: [STOCK_EXCEEDED, VP_REVIEW]}
+invoice_1003.txt:          {outcome: REJECTED, codes: [OUT_OF_STOCK, FRAUD_SIGNAL]}
+invoice_1004.json:         {outcome: APPROVED, codes: [], amount_usd: 1890.00}
+invoice_1004_revised.json: {outcome: NEEDS_HUMAN_REVIEW, codes: [DUPLICATE]}
+invoice_1005.json:         {outcome: REJECTED, codes: [STOCK_EXCEEDED, VP_REVIEW]}
+invoice_1006.csv:          {outcome: APPROVED, codes: []}
+invoice_1007.csv:          {outcome: REJECTED, codes: [STOCK_EXCEEDED, TOTAL_MISMATCH]}
+invoice_1008.txt:          {outcome: REJECTED, codes: [UNKNOWN_ITEM, NEAR_THRESHOLD]}
+invoice_1009.json:         {outcome: REJECTED, codes: [NEGATIVE_QTY, MISSING_FIELD, TOTAL_MISMATCH]}
+invoice_1010.txt:          {outcome: APPROVED, codes: [PRICE_VARIANCE], amount_usd: 7185.00}
+invoice_1011.pdf:          {outcome: APPROVED, codes: []}
+invoice_1011.txt:          {outcome: NEEDS_HUMAN_REVIEW, codes: [DUPLICATE]}
+invoice_1012.pdf:          {outcome: APPROVED, codes: [VENDOR_RENAMED, NEAR_THRESHOLD], extraction_attempts: 2}
+invoice_1012.txt:          {outcome: NEEDS_HUMAN_REVIEW, codes: [DUPLICATE]}
+invoice_1013.json:         {outcome: REJECTED, codes: [STOCK_EXCEEDED, TOTAL_MISMATCH, VP_REVIEW]}
+invoice_1013.pdf:          {outcome: REJECTED, codes: [STOCK_EXCEEDED, TOTAL_MISMATCH]}
+invoice_1014.xml:          {outcome: APPROVED, codes: [], amount_usd: 4455.00}
+invoice_1015.csv:          {outcome: APPROVED, codes: []}
+invoice_1016.json:         {outcome: REJECTED, codes: [UNKNOWN_ITEM]}

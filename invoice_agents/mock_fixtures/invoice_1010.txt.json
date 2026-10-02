@@ -1,0 +1,55 @@
+{
+  "_comment": "Scripted Grok extraction output for the offline mock provider.",
+  "attempts": [
+    {
+      "invoice_number": "INV-1010",
+      "vendor": "Consolidated Materials Group",
+      "vendor_address": null,
+      "invoice_date": "January 27, 2026",
+      "due_date": "February 26, 2026",
+      "currency": "USD",
+      "line_items": [
+        {
+          "item": "WidgetA",
+          "quantity": 8,
+          "unit_price": 250.0,
+          "amount": 2000.0,
+          "note": null
+        },
+        {
+          "item": "WidgetB",
+          "quantity": 4,
+          "unit_price": 500.0,
+          "amount": 2000.0,
+          "note": null
+        },
+        {
+          "item": "GadgetX",
+          "quantity": 2,
+          "unit_price": 750.0,
+          "amount": 1500.0,
+          "note": null
+        },
+        {
+          "item": "WidgetA",
+          "quantity": 4,
+          "unit_price": 300.0,
+          "amount": 1200.0,
+          "note": "rush order"
+        }
+      ],
+      "subtotal": 6700.0,
+      "tax_rate": null,
+      "tax_amount": 335.0,
+      "other_charges": [
+        {
+          "label": "Shipping",
+          "amount": 150.0
+        }
+      ],
+      "total": 7185.0,
+      "payment_terms": "Net 30",
+      "notes": null
+    }
+  ]
+}
