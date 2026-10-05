@@ -80,7 +80,7 @@ python main.py --ui --provider mock --reset-db      # opens http://127.0.0.1:876
 ## How it works
 
 ```mermaid
-flowchart LR
+flowchart TD
     L[load] --> E[Ingestion agent<br/>extract]
     E --> C{check_extraction}
     C -- errors: re-read --> E
