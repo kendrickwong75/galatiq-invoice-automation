@@ -1,4 +1,4 @@
-"""Payment stage: the README's mock banking stub plus a guarded wrapper.
+"""Payment stage: the case brief's mock banking stub plus a guarded wrapper.
 
 Payment is a deterministic graph node, never a tool bound to an LLM: the approval agent can recommend
 approval, but only this code path can move money.
@@ -14,7 +14,7 @@ from . import db
 from .models import PaymentResult
 
 
-# Provided by the case README, copied verbatim. This is the simulated bank; do not modify.
+# Provided by the case brief, copied verbatim. This is the simulated bank; do not modify.
 # Its print() is redirected to stderr by main.py in --json mode so stdout stays valid JSON.
 def mock_payment(vendor, amount):
     print(f"Paid {amount} to {vendor}")

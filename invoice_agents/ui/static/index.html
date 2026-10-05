@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice Automation</title>
+<style>
+  :root {
+    --bg: #F7F6F1; --card: #FDFCF9; --line: #E2DED3; --ink: #14213D; --text: #1B2A41; --muted: #4A5568;
+    --faint: #6B7280; --blue: #2B6CB0; --amber: #D9822B; --amber-text: #B35C14; --red: #B42318;
+    --held-bg: #FBEBD9; --paid-bg: #E3EDF8; --rej-bg: #E6E8EE;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  h1 { margin: 0; font: 600 28px/1.2 Georgia, "Times New Roman", serif; color: var(--ink); }
+  .sub { margin: 4px 0 0; color: var(--muted); }
+  .chip { font-size: 13px; color: var(--muted); border: 1px solid var(--line); background: var(--card);
+          border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+
+  #zone { margin: 28px 0 12px; min-height: 220px; display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: 10px; text-align: center; padding: 32px 16px; cursor: pointer;
+          background: var(--card); border: 2px dashed #C9C3B4; border-radius: 18px;
+          transition: border-color .15s, background .15s; }
+  #zone:hover, #zone:focus-visible { border-color: var(--blue); outline: none; }
+  #zone.over { border-color: var(--blue); background: #EEF4FB; }
+  #zone svg { width: 48px; height: 48px; color: var(--blue); }
+  #zone .big { font-size: 20px; font-weight: 600; color: var(--ink); }
+  #zone .small { color: var(--muted); font-size: 14px; }
+
+  #notices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .notice { font-size: 14px; color: var(--red); background: #FBECEA; border-radius: 8px; padding: 8px 12px; }
+  .notice.info { color: var(--muted); background: #EEECE5; }
+
+  #summary { margin: 24px 0 10px; color: var(--muted); font-size: 14px; min-height: 20px; }
+  #jobs { display: flex; flex-direction: column; gap: 12px; }
+  .job { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .job.done { cursor: pointer; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .file { font-weight: 600; color: var(--ink); word-break: break-all; }
+  .meta { font-size: 13px; color: var(--muted); }
+  .badge { font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+  .badge.APPROVED { background: var(--paid-bg); color: #1E4E80; }
+  .badge.NEEDS_HUMAN_REVIEW { background: var(--held-bg); color: #8A4510; }
+  .badge.REJECTED { background: var(--rej-bg); color: var(--ink); }
+  .badge.wait { background: #EEECE5; color: var(--muted); font-weight: 500; }
+
+  .stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+  .stage { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .dot { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C9C3B4;
+         display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
+  .stage.working .dot { border-color: var(--amber); background: var(--amber); animation: pulse 1.1s infinite; }
+  .stage.done .dot { border-color: var(--blue); background: var(--blue); }
+  .stage.failed .dot { border-color: var(--red); background: var(--red); }
+  .stage.skipped .dot { border-style: dashed; }
+  .stage .label { font-size: 14px; color: var(--text); line-height: 1.25; }
+  .stage .label small { display: block; color: var(--faint); font-size: 12px; }
+  .stage.pending .label, .stage.skipped .label { color: var(--faint); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(217,130,43,.18); } }
+
+  .activity { margin-top: 10px; font-size: 13px; color: var(--amber-text); }
+  .details { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: none; }
+  .job.open .details { display: block; }
+  .details p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+  .codes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .code { font: 12px/1 Consolas, "Courier New", monospace; background: #EEECE5; color: var(--text);
+          border-radius: 6px; padding: 5px 8px; }
+  .hint { font-size: 12px; color: var(--faint); margin-top: 8px; }
+  .job.open .hint { display: none; }
+
+  @media (max-width: 560px) {
+    .stages { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Invoice automation</h1>
+      <p class="sub">Acme Corp accounts payable · ingestion → validation → approval → payment</p>
+    </div>
+    <span class="chip" id="provider">Connecting…</span>
+  </header>
+
+  <div id="zone" role="button" tabindex="0" aria-label="Choose invoice files, or drop them here">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+         stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+    </svg>
+    <div class="big">Drop invoices here or click to choose</div>
+    <div class="small" id="types">One or many files</div>
+  </div>
+  <input type="file" id="picker" multiple hidden>
+  <div id="notices" aria-live="polite"></div>
+
+  <div id="summary" aria-live="polite"></div>
+  <div id="jobs"></div>
+</main>
+
+<script>
+(() => {
+  const STAGES = [["ingestion", "Ingestion"], ["validation", "Validation"], ["approval", "Approval"], ["payment", "Payment"]];
+  const OUTCOME = { APPROVED: "Approved", NEEDS_HUMAN_REVIEW: "Held for review", REJECTED: "Rejected" };
+  const STATE_WORD = { pending: "waiting", working: "in progress", done: "done", failed: "failed", skipped: "skipped" };
+  const zone = document.getElementById("zone"), picker = document.getElementById("picker");
+  const jobsEl = document.getElementById("jobs"), notices = document.getElementById("notices");
+  const open = new Set();
+  let polling = false;
+
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined && text !== null) node.textContent = text;  // never innerHTML: names and rationales are untrusted
+    return node;
+  };
+  const money = (v) => v == null ? "" : "$" + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function notice(text, info) {
+    const n = el("div", "notice" + (info ? " info" : ""), text);
+    notices.appendChild(n);
+    setTimeout(() => n.remove(), info ? 4000 : 12000);
+  }
+
+  fetch("/api/info").then(r => r.json()).then(info => {
+    document.getElementById("provider").textContent = "LLM: " + info.provider + " · " + info.model;
+    document.getElementById("types").textContent = "One or many files · " + info.extensions.join(" ").toUpperCase().replace(/\./g, "");
+    picker.accept = info.extensions.join(",");
+  }).catch(() => { document.getElementById("provider").textContent = "Server unreachable"; });
+
+  zone.addEventListener("click", () => picker.click());
+  zone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); picker.click(); } });
+  picker.addEventListener("change", () => { upload(picker.files); picker.value = ""; });
+  ["dragenter", "dragover"].forEach(t => zone.addEventListener(t, (e) => { e.preventDefault(); zone.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(t => zone.addEventListener(t, (e) => { e.preventDefault(); zone.classList.remove("over"); }));
+  zone.addEventListener("drop", (e) => upload(e.dataTransfer.files));
+  // A file dropped beside the zone shouldn't make the browser navigate away from the page.
+  ["dragover", "drop"].forEach(t => window.addEventListener(t, (e) => e.preventDefault()));
+
+  async function upload(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const form = new FormData();
+    files.forEach(f => form.append("files", f, f.name));
+    notice("Uploading " + files.length + (files.length === 1 ? " file…" : " files…"), true);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) { notice(data.error || "Upload failed."); return; }
+      (data.rejected || []).forEach(r => notice(r.file + ": " + r.reason));
+    } catch (err) {
+      notice("Upload failed: the server isn't responding.");
+    }
+    poll();
+  }
+
+  function stageLabel(job, key, name) {
+    if (key === "ingestion" && job.reads > 1) return "read ×" + job.reads;
+    if (key === "approval" && job.critiques > 1) return "critique ×" + job.critiques;
+    if (key === "payment" && job.status === "done") {
+      if (job.outcome === "APPROVED" && job.payment_ref) return "paid " + money(job.amount_usd);
+      if (job.outcome === "NEEDS_HUMAN_REVIEW") return "review queue";
+      if (job.outcome === "REJECTED") return "not paid";
+    }
+    return STATE_WORD[job.stages[key]];
+  }
+
+  function card(job) {
+    const done = job.status === "done";
+    const c = el("div", "job" + (done ? " done" : "") + (open.has(job.id) ? " open" : ""));
+    const top = el("div", "top");
+    const left = el("div");
+    left.appendChild(el("div", "file", job.file));
+    const meta = [job.vendor, job.invoice_number, job.amount_usd != null ? money(job.amount_usd) : null].filter(Boolean).join(" · ");
+    if (meta) left.appendChild(el("div", "meta", meta));
+    top.appendChild(left);
+    top.appendChild(done ? el("span", "badge " + job.outcome, OUTCOME[job.outcome] || job.outcome)
+                         : el("span", "badge wait", job.status === "queued" ? "Queued" : "Processing"));
+    c.appendChild(top);
+
+    const stages = el("div", "stages");
+    STAGES.forEach(([key, name]) => {
+      const state = job.stages[key];
+      const s = el("div", "stage " + state);
+      s.title = name + ": " + STATE_WORD[state];
+      s.appendChild(el("span", "dot", state === "done" ? "✓" : state === "failed" ? "✕" : ""));
+      const label = el("span", "label", name);
+      label.appendChild(el("small", null, stageLabel(job, key, name)));
+      s.appendChild(label);
+      stages.appendChild(s);
+    });
+    c.appendChild(stages);
+
+    if (!done && job.activity) c.appendChild(el("div", "activity", job.activity + "…"));
+    if (done) {
+      const d = el("div", "details");
+      if (job.rationale) d.appendChild(el("p", null, job.rationale));
+      const extra = [];
+      if (job.payment_ref) extra.push("Payment " + job.payment_ref);
+      if (job.duration_ms != null) extra.push(job.duration_ms < 1000 ? "under 1 s" : (job.duration_ms / 1000).toFixed(1) + " s");
+      if (job.error) extra.push("Error: " + job.error);
+      if (extra.length) d.appendChild(el("p", null, extra.join(" · ")));
+      if (job.reason_codes && job.reason_codes.length) {
+        const codes = el("div", "codes");
+        job.reason_codes.forEach(code => codes.appendChild(el("span", "code", code)));
+        d.appendChild(codes);
+      }
+      c.appendChild(d);
+      c.appendChild(el("div", "hint", "Click for the reasoning"));
+      // Toggle in place: re-rendering the list here would reset the page's scroll position.
+      c.addEventListener("click", () => {
+        open.has(job.id) ? open.delete(job.id) : open.add(job.id);
+        c.classList.toggle("open", open.has(job.id));
+      });
+    }
+    return c;
+  }
+
+  function render(jobs) {
+    jobsEl.replaceChildren(...jobs.map(card));
+    const count = (pred) => jobs.filter(pred).length;
+    const busy = count(j => j.status !== "done");
+    document.getElementById("summary").textContent = !jobs.length ? "" :
+      [busy ? busy + " in progress" : null,
+       count(j => j.outcome === "APPROVED") + " approved",
+       count(j => j.outcome === "NEEDS_HUMAN_REVIEW") + " held for review",
+       count(j => j.outcome === "REJECTED") + " rejected"].filter(Boolean).join(" · ");
+  }
+
+  let lastSnapshot = "";
+  async function refresh() {
+    try {
+      const text = await (await fetch("/api/jobs")).text();
+      const jobs = JSON.parse(text).jobs;
+      if (text !== lastSnapshot) {  // only rebuild when something changed, and keep the reader's place
+        lastSnapshot = text;
+        const x = window.scrollX, y = window.scrollY;
+        render(jobs);
+        window.scrollTo(x, y);
+      }
+      return jobs.filter(j => j.status !== "done").length;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  async function poll() {
+    if (polling) return;
+    polling = true;
+    while ((await refresh()) > 0) await new Promise(r => setTimeout(r, 700));
+    polling = false;
+  }
+
+  poll();
+})();
+</script>
+</body>
+</html>

@@ -9,9 +9,27 @@ Run live on Grok against the 20 sample invoices, it **blocks 9 (including fraud,
 overcharge), holds 4 for a person (3 duplicates plus 1 invoice Grok judged risky) and pays 7 automatically**.
 That's 80% decided without a human, and nothing is paid twice.
 
+**Also in the repo:** an [executive summary deck](Invoice%20Automation%20Executive%20Summary.pdf) (PDF, 10 slides)
+and the [unedited output of the live Grok run](docs/live_grok_run/).
+
+### Quickstart
+
+Create a virtual environment and activate it. Every command below assumes it's active; you'll see `(.venv)` in
+your prompt.
+
+| Shell | Activate |
+|---|---|
+| Command Prompt | `.venv\Scripts\activate.bat` |
+| PowerShell | `.venv\Scripts\Activate.ps1` |
+| Git Bash | `source .venv/Scripts/activate` |
+| macOS / Linux | `source .venv/bin/activate` |
+
+Running `python main.py` without activating uses your system Python and fails with `No module named 'dotenv'`.
+Either activate first or call the environment's Python directly (`.venv\Scripts\python main.py …` on Windows).
+
 ```bash
 python -m venv .venv
-source .venv/Scripts/activate        # Git Bash; PowerShell: .venv\Scripts\Activate.ps1; macOS/Linux: source .venv/bin/activate
+# activate it (table above), then:
 pip install -r requirements.txt
 
 # Fully offline, no API key needed:
@@ -22,18 +40,40 @@ python main.py --provider mock --invoice_path=data/invoices/invoice_1001.txt
 # With Grok (the target model): copy .env.example to .env and set XAI_API_KEY
 python main.py --invoice_path=data/invoices/invoice_1001.txt
 
-pytest          # 99 tests, all offline
+pytest          # 106 tests, all offline (the 5 UI tests skip if Flask isn't installed)
 ```
 
-> The case README's example uses `data/invoices/invoice1.txt`, which doesn't exist; the sample files are
+> The case brief's example uses `data/invoices/invoice1.txt`, which doesn't exist; the sample files are
 > named `invoice_1001.txt` … `invoice_1016.json`. Any path works.
 
-CLI options: `--invoice_path` or `--invoice_dir` (batch, filename order), `--provider grok|mock`,
-`--reset-db` (reseed inventory, clear the payment ledger), `--json` (machine-readable output),
-`--db-path`, `--output-dir`.
+CLI options: `--invoice_path`, `--invoice_dir` (batch, filename order) or `--ui` (see below),
+`--provider grok|mock`, `--reset-db` (reseed inventory, clear the payment ledger), `--json` (machine-readable
+output), `--db-path`, `--output-dir`.
 
 The payment ledger persists between runs, as a real AP system's would: re-running an invoice that was
 already paid correctly sends it to review as a `DUPLICATE`. Use `--reset-db` for a clean demo run.
+
+### Optional web UI
+
+A small local page for people who'd rather not use the terminal. It's entirely optional: the pipeline and CLI
+don't need it, and it's the only feature that needs Flask.
+
+```bash
+pip install -r requirements-ui.txt
+python main.py --ui --provider mock --reset-db      # opens http://127.0.0.1:8765 in your browser
+```
+
+- **One central drop zone.** Click it to pick files, or drag one or many invoices onto it, in any supported
+  format (TXT, PDF, JSON, CSV, XML). Unsupported files are refused with a note.
+- **A live tracker.** Each invoice gets a card showing its progress through the four agent stages (Ingestion →
+  Validation → Approval → Payment) as it happens. Re-reads and critique rounds are counted ("read ×2",
+  "critique ×2"), and the final decision appears as a badge. Click a finished card for the agent's reasoning and
+  reason codes.
+- Files are processed one at a time, in the order dropped, by the same `run_invoice` the CLI uses. A progress
+  hook (`Deps.on_progress`) reports each agent step and can never break processing. Uploads are saved under
+  `output/ui_uploads/`, and every audit log and output file is written as usual.
+- The server listens on 127.0.0.1 only. Options: `--port` (default 8765) and `--no-browser`. With the mock
+  provider, the sample invoices work under their original names; new free-text invoices need `--provider grok`.
 
 ---
 
@@ -73,7 +113,7 @@ and `guard` (calls made, plus any it had to run itself).
 | | **Approval agent** | Drafts APPROVED / NEEDS_HUMAN_REVIEW / REJECTED with a stakeholder-readable rationale (structured output). | Decision, explanation |
 | | **Reflection agent** | An auditor persona critiques **every** draft: does it follow policy, cover every finding, and (over $10K) give a VP-level justification? It can send the draft back for revision (up to 2 critique rounds). | Critique |
 | | **finalize** | Final outcome = the **stricter** of policy and agent. The agent can escalate; it can never approve what policy rejects. Disagreements are logged. | — |
-| 4. Payment | **pay / record_rejection / enqueue_review** | Pays approved invoices through the README's `mock_payment`; records every decision in the ledger; writes held invoices to `review_queue.jsonl`. | **None, by design** |
+| 4. Payment | **pay / record_rejection / enqueue_review** | Pays approved invoices through the case brief's `mock_payment`; records every decision in the ledger; writes held invoices to `review_queue.jsonl`. | **None, by design** |
 
 ### Approval policy (`invoice_agents/agents/approver.py`, thresholds in `config.py`)
 
@@ -93,9 +133,9 @@ and `guard` (calls made, plus any it had to run itself).
 
 ## Design decisions
 
-**How we interpreted "simulate everything locally".** The README asks for Grok through xAI's hosted API,
+**How we interpreted "simulate everything locally".** The case brief asks for Grok through xAI's hosted API,
 so the LLM is the one external service it expects us to call; "simulate locally" refers to Acme's
-business systems. Those are simulated: banking is the README's `mock_payment`, the inventory/ERP is a local
+business systems. Those are simulated: banking is the case brief's `mock_payment`, the inventory/ERP is a local
 SQLite `inventory.db`, FX is a static rate table, and there are no real email or vendor integrations. The
 LLM backend is swappable through `get_llm()`: **Grok is the default**, and `mock` runs the whole pipeline
 offline and deterministically, so anyone can run it without a key or network.
@@ -103,7 +143,7 @@ offline and deterministically, so anyone can run it without a key or network.
 **LLM providers** (`invoice_agents/llm.py`, set with `LLM_PROVIDER` or `--provider`).
 Both are LangChain chat models, so agent code calls `.bind_tools()` / `.with_structured_output()`
 the same way for each, and another provider would be one more branch in `get_llm()`.
-- `grok` (default): `langchain-xai` `ChatXAI`, `XAI_API_KEY`. The README's setup snippet
+- `grok` (default): `langchain-xai` `ChatXAI`, `XAI_API_KEY`. The case brief's setup snippet
   (`from xai import Grok`, `model="grok-3"`) is illustrative; it isn't an installable package, and xAI no
   longer lists `grok-3`. We use LangChain's maintained xAI integration and default to `grok-4.7`
   (override with `GROK_MODEL`).
@@ -123,13 +163,13 @@ documents, choosing and sequencing checks, weighing soft risk signals, and expla
 the extracted invoice from graph state (LangGraph `InjectedState`) instead of taking it as LLM-typed
 arguments, so a model can't alter the numbers it is checking.
 
-**Payment is a safeguard, not a tool.** `mock_payment` is copied verbatim from the case README. It is
+**Payment is a safeguard, not a tool.** `mock_payment` is copied verbatim from the case brief. It is
 called only from a deterministic node, after an approved outcome, with pre-flight checks (vendor present,
 amount > 0, not already paid) and a check of the bank's response. No LLM has a payment tool. A failed
 payment becomes `NEEDS_HUMAN_REVIEW` with `PAYMENT_FAILED`.
 
 **Inventory is read-only.** Paying an invoice does not decrement stock. This is deliberate: each provided
-test invoice is validated against the stock levels the README specifies, giving the same result whatever
+test invoice is validated against the stock levels the case brief specifies, giving the same result whatever
 order invoices run in. A production system would reserve or decrement stock on payment.
 
 **Duplicates are blocked, never "netted".** The ledger key is the normalized vendor plus invoice number
@@ -141,7 +181,7 @@ auto-pay the difference on a revision: `1004_revised` cites a PO amendment we ha
 payment is made in USD. The original amount, currency and rate are kept on the result. A currency not in the
 table goes to a human.
 
-**Catalog price check (an extension).** The README's inventory has no prices, so we added a `unit_price`
+**Catalog price check (an extension).** The case brief's inventory has no prices, so we added a `unit_price`
 column (WidgetA $250, WidgetB $500, GadgetX $750). Prices more than 10% above catalog are a **flag**, not a
 rejection; discounts are not flagged.
 
@@ -191,7 +231,7 @@ Every batch run ends with a summary. The live Grok run on the sample data:
 The offline mock run makes the same decisions except that it pays 1012, so it reports 8 paid ($40,755), 3 held
 ($18,915) and 85% decided without a human, in under a second.
 
-The README's baseline has no invoice volume, so we report rates rather than projected dollars. If manual
+The case brief's baseline has no invoice volume, so we report rates rather than projected dollars. If manual
 cost scales with human touches, the share of the $2M removed is roughly the touchless rate. Blocked amounts
 are exposure avoided, not savings.
 
@@ -205,7 +245,8 @@ are exposure avoided, not savings.
 | `output/audit.jsonl` | One JSON event per graph node: run id, invoice, node, latency, provider/model, tool calls, findings, decisions, LLM–policy disagreements |
 | `output/results/<file>.json` | The full result for each invoice |
 | `output/review_queue.jsonl` | Invoices waiting for a person, with reasons and rationale |
-| `output/batch_summary.json` | Summary metrics plus every result |
+| `output/batch_summary.json` | Summary metrics plus every result (written by the CLI) |
+| `output/ui_uploads/` | Files dropped into the optional web UI, one folder per drop |
 | `inventory.db` | Inventory plus the `processed_invoices` ledger (created on first run; gitignored, `scripts/init_db.py` is the source of truth) |
 
 **Error handling.** A bad file, an LLM outage or a parse failure never crashes a batch. Structured invoices
@@ -213,7 +254,7 @@ still get a policy decision without the LLM; unreadable ones go to the review qu
 
 ## Testing
 
-`pytest` runs 99 offline tests (mock provider, temporary database):
+`pytest` runs 106 offline tests (mock provider, temporary database):
 - **Unit:** normalization (OCR, money, dates, SKUs, dedupe keys), the parsers on all 10 structured samples,
   every validation tool, the policy engine, and the rule that the LLM can't loosen a policy reject.
 - **Providers:** Grok constructs with a key, fails fast without one, and binds every agent schema for structured
@@ -224,6 +265,9 @@ still get a policy decision without the LLM; unreadable ones go to the review qu
   or duplicates; a failed bank response goes to review.
 - **End to end:** the whole sample batch is checked against `tests/fixtures/expected_outcomes.yaml`.
 - **CLI:** `--json` output parses as JSON for a single invoice and a batch, with the stub's print on stderr.
+- **Optional UI:** the progress hook reports every agent step in order, and a failing observer changes nothing.
+  Uploads are accepted or refused per file, every stage is tracked to completion, re-read and critique counters
+  are correct, and duplicates are caught in drop order. These 5 tests skip without Flask.
 
 **What was verified with which model:**
 - **Live Grok (`grok-4.7`), full batch, 2 October 2026:** 19 of 20 invoices matched
@@ -237,7 +281,7 @@ still get a policy decision without the LLM; unreadable ones go to the review qu
   used the optional `lookup_inventory_item` tool to investigate.
   Grok read 1012's OCR noise correctly on the first attempt, so the extraction self-correction loop didn't need to
   fire live; it is exercised offline by the mock (a scripted misread of 1012) and its tests.
-- **Offline:** the 99 tests and the expected-outcomes file use the deterministic `mock` provider, so they need no
+- **Offline:** the tests and the expected-outcomes file use the deterministic `mock` provider, so they need no
   key and always give the same results.
 
 ## Project layout
@@ -254,14 +298,83 @@ invoice_agents/
   agents/                       state · extractor · validator (+guard) · approver (policy, draft, critique, finalize) · payer
   tools/                        deterministic checks: inventory, arithmetic, pricing, duplicates, fx, fraud, fields
   ingestion/                    loaders (txt/pdf/json/csv/xml) · parsers · normalize
-  payment.py                    README mock_payment (verbatim) + guarded execute_payment
+  payment.py                    the case brief's mock_payment (verbatim) + guarded execute_payment
   db.py · audit.py · report.py  SQLite inventory/ledger · JSON audit log · rich output + impact metrics
+  ui/                           optional web UI: server.py (Flask, job tracker) · static/index.html (drop zone + tracker)
 scripts/init_db.py              seed or reset the database
-tests/                          99 tests + expected outcomes
+tests/                          106 tests + expected outcomes
 docs/live_grok_run/             evidence from the live Grok batch: console output, results, audit log, review queue
-requirements.txt · .env.example · pytest.ini
+Invoice Automation Executive Summary.pdf    the executive summary deck
+requirements.txt · requirements-ui.txt · .env.example · pytest.ini
 data/                           the case's sample invoices
 ```
+
+### Where to find things
+
+Common questions, with the file and the function or constant to search for.
+
+**The LLM: what we ask it, and what it must return**
+
+| Question | Look at |
+|---|---|
+| What exactly do we tell Grok at each step? | [`prompts.py`](invoice_agents/prompts.py): `EXTRACTION_SYSTEM`, `VALIDATOR_SYSTEM`, `APPROVER_SYSTEM`, `CRITIC_SYSTEM` |
+| How is invoice data handed to the prompt? | [`prompts.py`](invoice_agents/prompts.py): `context_block` (the `<context>` JSON envelope) |
+| What shape must its answers take? | [`models.py`](invoice_agents/models.py): `Invoice` (extraction), `ApprovalDraft` (decision), `Critique` (reflection) |
+| Which model and provider, and how are they chosen? | [`llm.py`](invoice_agents/llm.py): `get_llm`; default model in [`config.py`](invoice_agents/config.py): `DEFAULT_GROK_MODEL` |
+| What does the offline mock answer? | [`mock_llm.py`](invoice_agents/mock_llm.py): `MockChatModel`; scripted extractions in [`mock_fixtures/`](invoice_agents/mock_fixtures/) |
+
+**Stage 1, ingestion**
+
+| Question | Look at |
+|---|---|
+| How is each file format read? | [`ingestion/loaders.py`](invoice_agents/ingestion/loaders.py): `load_document` (PDF via pdfplumber) |
+| How are JSON, CSV and XML parsed without the LLM? | [`ingestion/parsers.py`](invoice_agents/ingestion/parsers.py): `parse_structured`, `_parse_csv_key_value`, `_parse_csv_rows`, `_parse_xml` |
+| How are OCR noise, names and dates cleaned up? | [`ingestion/normalize.py`](invoice_agents/ingestion/normalize.py): `fix_ocr_digits`, `normalize_sku`, `parse_date`, `normalize_invoice` |
+| When does extraction get sent back for a re-read? | [`agents/extractor.py`](invoice_agents/agents/extractor.py): `extraction_errors` (the checks), `check_extraction`, `route_after_check` |
+
+**Stage 2, validation: the prompt and the criteria**
+
+| Question | Look at |
+|---|---|
+| Where do we prompt the LLM for validation? | [`prompts.py`](invoice_agents/prompts.py): `VALIDATOR_SYSTEM`; sent by [`agents/validator.py`](invoice_agents/agents/validator.py): `validator_agent` |
+| Which checks must run, and how does Grok see them? | [`agents/validator.py`](invoice_agents/agents/validator.py): `REQUIRED_CHECKS`, `_DESCRIPTIONS` (tool descriptions), `make_tools` |
+| What if Grok skips a check? | [`agents/validator.py`](invoice_agents/agents/validator.py): `guard` |
+| Criterion: required fields | [`tools/fields.py`](invoice_agents/tools/fields.py): `check_required_fields` |
+| Criterion: stock (summed across lines) | [`tools/inventory.py`](invoice_agents/tools/inventory.py): `check_inventory` |
+| Criterion: arithmetic | [`tools/arithmetic.py`](invoice_agents/tools/arithmetic.py): `verify_arithmetic` |
+| Criterion: catalog price | [`tools/pricing.py`](invoice_agents/tools/pricing.py): `check_catalog_prices` |
+| Criterion: duplicates | [`tools/duplicates.py`](invoice_agents/tools/duplicates.py): `check_duplicate`, `diff_invoices`; key in [`normalize.py`](invoice_agents/ingestion/normalize.py): `dedupe_key` |
+| Criterion: currency | [`tools/fx.py`](invoice_agents/tools/fx.py): `convert_to_usd`; rates in [`config.py`](invoice_agents/config.py): `FX_RATES_TO_USD` |
+| Criterion: fraud signals | [`tools/fraud.py`](invoice_agents/tools/fraud.py): `fraud_signals` and the patterns `_URGENCY`, `_PAYMENT_CHANNEL`, `_SUSPICIOUS_VENDOR`, `_RENAMED` |
+| What do the finding severities and reason codes mean? | [`models.py`](invoice_agents/models.py): `Severity`, `ReasonCode` |
+
+**Stage 3, approval and reflection**
+
+| Question | Look at |
+|---|---|
+| What are the approval rules? | [`agents/approver.py`](invoice_agents/agents/approver.py): `apply_policy` |
+| What are the thresholds and tolerances? | [`config.py`](invoice_agents/config.py): `VP_REVIEW_THRESHOLD_USD`, `NEAR_THRESHOLD_BAND`, `STRONG_FRAUD_SIGNALS_TO_REJECT`, `PRICE_VARIANCE_TOLERANCE` |
+| How does Grok draft and critique a decision? | [`agents/approver.py`](invoice_agents/agents/approver.py): `approve_draft`, `critique`, `route_after_critique` |
+| How do the rules stop the LLM from being more lenient? | [`agents/approver.py`](invoice_agents/agents/approver.py): `finalize` |
+
+**Stage 4, payment**
+
+| Question | Look at |
+|---|---|
+| The case's bank stub, and its safety checks | [`payment.py`](invoice_agents/payment.py): `mock_payment` (verbatim), `execute_payment` |
+| What happens after approved, rejected or held | [`agents/payer.py`](invoice_agents/agents/payer.py): `pay`, `record_rejection`, `enqueue_review` |
+| The inventory seed and the payment ledger | [`config.py`](invoice_agents/config.py): `INVENTORY_SEED`; [`db.py`](invoice_agents/db.py): `init_db`, `ledger_lookup`, `ledger_record` |
+
+**Wiring, output and tests**
+
+| Question | Look at |
+|---|---|
+| How do the agents connect, and in what order? | [`graph.py`](invoice_agents/graph.py): `build_graph`; one invoice end to end: `run_invoice` |
+| Where is every step logged? | [`graph.py`](invoice_agents/graph.py): `_audited`; [`audit.py`](invoice_agents/audit.py) |
+| How are the business-impact numbers worked out? | [`report.py`](invoice_agents/report.py): `summarize`, `impact_panel` |
+| CLI flags | [`main.py`](main.py): `parse_args` |
+| How does the UI track each agent stage? | [`ui/server.py`](invoice_agents/ui/server.py): `NODE_STAGE`, `JobTracker`; hook: `Deps.on_progress` in [`agents/state.py`](invoice_agents/agents/state.py) |
+| What should each sample invoice produce? | [`tests/fixtures/expected_outcomes.yaml`](tests/fixtures/expected_outcomes.yaml) |
 
 ## Limitations and next steps
 
@@ -273,3 +386,5 @@ data/                           the case's sample invoices
   the graph.
 - FX rates are static. In production, call a treasury FX service and store the rate used.
 - Scanned image-only PDFs are routed to a human. Add OCR (e.g. Tesseract) or a vision model.
+- The web UI is a local, single-user tool: no login, and its tracker lives in memory, so restarting the server
+  clears the cards (results stay in `output/` and the ledger). It also doesn't write `batch_summary.json`.

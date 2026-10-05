@@ -1,7 +1,7 @@
 """SQLite inventory (simulated ERP) and processed-invoice ledger.
 
 The inventory is read-only at runtime: paying an invoice does not decrement stock, so each provided test
-invoice is validated against the stock levels the README specifies, regardless of processing order.
+invoice is validated against the stock levels the case brief specifies, regardless of processing order.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS inventory (
     item        TEXT PRIMARY KEY,
     stock       INTEGER NOT NULL,
-    unit_price  REAL            -- catalog price; extension beyond the README's spec
+    unit_price  REAL            -- catalog price; extension beyond the case brief's spec
 );
 CREATE TABLE IF NOT EXISTS processed_invoices (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -5,7 +5,7 @@ from __future__ import annotations
 import operator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, TypedDict
+from typing import Annotated, Any, Callable, TypedDict
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph.message import add_messages
@@ -26,6 +26,9 @@ class Deps:
     provider: str
     model: str
     known_skus: list[str] = field(default_factory=list)
+    # Optional observer for live progress (used by the web UI): called with {..., "phase": "start"|"end"|"error"}
+    # around every audited node. Exceptions it raises are swallowed so it can never break processing.
+    on_progress: Callable[[dict[str, Any]], None] | None = None
 
 
 class PipelineState(TypedDict, total=False):

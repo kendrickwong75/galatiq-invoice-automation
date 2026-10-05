@@ -119,7 +119,7 @@ def impact_panel(s: dict) -> Panel:
         f"Agent behaviour: {s['self_corrections']} extraction self-correction(s), {s['reflection_revisions']} "
         f"approval revision(s) after critique, {s['vp_reviews']} VP-level review(s).",
         "",
-        "[dim]Assumptions: the README's baseline (about $2M/yr manual cost, 30% keying errors, 5-day cycle) has no "
+        "[dim]Assumptions: the case brief's baseline (about $2M/yr manual cost, 30% keying errors, 5-day cycle) has no "
         "invoice volume, so we report rates rather than projected dollars. If manual handling cost scales with "
         "touches, the share of that cost removed is roughly the 'decided without a human' rate. "
         f"Blocked amounts are exposure avoided, not savings. VP threshold ${config.VP_REVIEW_THRESHOLD_USD:,.0f}.[/]",

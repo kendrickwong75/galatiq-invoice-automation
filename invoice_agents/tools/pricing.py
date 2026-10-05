@@ -10,7 +10,7 @@ from .fx import fx_rate
 def check_catalog_prices(inv: Invoice, db_path: str | Path) -> ToolResult:
     """Flag unit prices more than the tolerance above catalog (after FX). Discounts are not flagged.
 
-    This is an extension: the README's inventory spec has no prices, so this is a FLAG, never a reject.
+    This is an extension: the case brief's inventory spec has no prices, so this is a FLAG, never a reject.
     """
     rate = fx_rate(inv.currency)
     if rate is None:

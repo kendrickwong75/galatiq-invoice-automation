@@ -8,6 +8,9 @@ load -> extract -> check_extraction --(errors)--> extract            [self-corre
                       guard -> policy -> approve_draft -> critique --(revise)--> approve_draft   [reflection]
                                                              v
                                                          finalize -> pay | record_rejection | enqueue_review
+
+Every node except validator_tools (LangGraph's ToolNode) is wrapped by _audited, which times it, writes one
+audit event and reports start/end to the optional Deps.on_progress observer (used by the web UI).
 """
 
 from __future__ import annotations
@@ -38,21 +41,35 @@ def build_deps(provider: str | None = None, db_path: str | Path = config.DEFAULT
                 model=model_name(provider), known_skus=db.list_skus(db_path))
 
 
+def _notify(deps: Deps, event: dict) -> None:
+    """Send a progress event to the optional observer; an observer failure never affects processing."""
+    if deps.on_progress is None:
+        return
+    try:
+        deps.on_progress(event)
+    except Exception:
+        pass
+
+
 def _audited(name: str, fn: Callable, deps: Deps) -> Callable[[PipelineState], dict]:
     """Wrap a node: time it, write one audit event, and append that event to the state's trail."""
     def run(state: PipelineState) -> dict:
         started = time.perf_counter()
         base = {"run_id": state.get("run_id"), "invoice": state.get("source_file"), "node": name,
                 "provider": deps.provider, "model": deps.model}
+        _notify(deps, {**base, "phase": "start"})
         try:
             update = fn(state, deps) or {}
         except Exception as exc:
-            audit.event(**base, status="error", error=repr(exc),
-                        latency_ms=round((time.perf_counter() - started) * 1000))
+            error = {**base, "status": "error", "error": repr(exc),
+                     "latency_ms": round((time.perf_counter() - started) * 1000)}
+            audit.event(**error)
+            _notify(deps, {**error, "phase": "error"})
             raise
         event = {**base, "status": "ok", "latency_ms": round((time.perf_counter() - started) * 1000),
                  **update.pop("_audit", {})}
         audit.event(**event)
+        _notify(deps, {**event, "phase": "end"})
         update["trail"] = [event]
         return update
     return run
