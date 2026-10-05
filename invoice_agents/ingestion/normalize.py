@@ -1,4 +1,4 @@
-"""Clean-up for messy values: OCR artefacts, money strings, date formats, product names."""
+"""Clean-up for messy values: OCR-style errors in extracted text, money strings, date formats, product names."""
 
 from __future__ import annotations
 

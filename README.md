@@ -105,7 +105,7 @@ and `guard` (calls made, plus any it had to run itself).
 
 | Stage | Agent / node | What it does | LLM role |
 |---|---|---|---|
-| 1. Ingestion | **Ingestion agent** | JSON/CSV/XML are parsed in code (exact, free). Free text, emails and PDFs go to Grok with **structured output** (Pydantic `Invoice` schema). Then normalization: OCR fixes (`2O26` → 2026), `Widget A` → `WidgetA`, date formats, string totals. | Extraction |
+| 1. Ingestion | **Ingestion agent** | JSON/CSV/XML are parsed in code (exact, free). Free text, emails and PDFs go to Grok with **structured output** (Pydantic `Invoice` schema). Normalization then repairs OCR-style errors in the text (`2O26` → 2026), turns `Widget A` into `WidgetA`, and standardizes dates and string totals. PDFs are read from their text layer; there is no image OCR. | Extraction |
 | | **check_extraction** (self-correction) | Line-item names, quantities, prices and amounts, the subtotal, tax, total and vendor name must all appear in the source document, and line amounts must reconcile. On failure, the specific errors go back to Grok for a re-read (up to 3 attempts). If a re-read returns the same values, the document itself is inconsistent; that's passed on as a finding, not retried forever. | Re-reads |
 | 2. Validation | **Validation agent** | Grok runs a **tool-calling** loop over 7 deterministic checks (required fields, inventory, arithmetic, catalog prices, duplicates, FX, fraud signals), plus a `lookup_inventory_item` tool for investigating unknown item names. | Tool use, summary |
 | | **guard** | Runs any required check the agent skipped, so findings never depend on the model remembering a tool call. | — |
@@ -203,7 +203,7 @@ rejection; discounts are not flagged.
 | 1009 json | Empty vendor, no due date, quantity −5, subtotal ≠ lines, negative total | **Rejected**: integrity |
 | 1010 txt | WidgetA on two lines (8 + 4 rush at $300); shipping charge | **Paid** $7,185, with a price-variance flag |
 | 1011 pdf/txt | The same invoice in two formats | **Paid once**; second copy to review |
-| 1012 pdf/txt | OCR noise (`2O26`, `$3,500.O0`, `Widget A`), "formerly FastShip Ltd.", $9,975 | **Grok: held for review** (vendor rename + $25 under the VP threshold); the copy is held as a duplicate of a pending invoice. Policy alone (and the mock) would pay it. |
+| 1012 pdf/txt | OCR-style errors in the text (`2O26`, `$3,500.O0`, `Widget A`), "formerly FastShip Ltd.", $9,975 | **Grok: held for review** (vendor rename + $25 under the VP threshold); the copy is held as a duplicate of a pending invoice. Policy alone (and the mock) would pay it. |
 | 1013 json/pdf | Each line fits stock, but **summed** WidgetA 22 / WidgetB 18 / GadgetX 9 don't; **grand total is $50 more than subtotal + tax** | **Rejected**: stock + arithmetic |
 | 1014 xml | EUR | **Paid** $4,455 (€4,125 @ 1.08) |
 | 1015 csv | Clean | **Paid** $6,500 |
@@ -255,7 +255,7 @@ still get a policy decision without the LLM; unreadable ones go to the review qu
 ## Testing
 
 `pytest` runs 106 offline tests (mock provider, temporary database):
-- **Unit:** normalization (OCR, money, dates, SKUs, dedupe keys), the parsers on all 10 structured samples,
+- **Unit:** normalization (OCR-style digit errors, money, dates, SKUs, dedupe keys), the parsers on all 10 structured samples,
   every validation tool, the policy engine, and the rule that the LLM can't loosen a policy reject.
 - **Providers:** Grok constructs with a key, fails fast without one, and binds every agent schema for structured
   output without warnings; unknown providers are rejected; our code never imports `openai`.
@@ -279,7 +279,7 @@ still get a policy decision without the LLM; unreadable ones go to the review qu
   rationale never compared the amount with the $10K threshold, and the revision added that VP-level justification.
   Grok called all 7 checks itself on every invoice, and on the two invoices with unknown items (1008, 1016) it also
   used the optional `lookup_inventory_item` tool to investigate.
-  Grok read 1012's OCR noise correctly on the first attempt, so the extraction self-correction loop didn't need to
+  Grok read 1012's OCR-style errors correctly on the first attempt, so the extraction self-correction loop didn't need to
   fire live; it is exercised offline by the mock (a scripted misread of 1012) and its tests.
 - **Offline:** the tests and the expected-outcomes file use the deterministic `mock` provider, so they need no
   key and always give the same results.
@@ -329,7 +329,7 @@ Common questions, with the file and the function or constant to search for.
 |---|---|
 | How is each file format read? | [`ingestion/loaders.py`](invoice_agents/ingestion/loaders.py): `load_document` (PDF via pdfplumber) |
 | How are JSON, CSV and XML parsed without the LLM? | [`ingestion/parsers.py`](invoice_agents/ingestion/parsers.py): `parse_structured`, `_parse_csv_key_value`, `_parse_csv_rows`, `_parse_xml` |
-| How are OCR noise, names and dates cleaned up? | [`ingestion/normalize.py`](invoice_agents/ingestion/normalize.py): `fix_ocr_digits`, `normalize_sku`, `parse_date`, `normalize_invoice` |
+| How are OCR-style errors, names and dates cleaned up? | [`ingestion/normalize.py`](invoice_agents/ingestion/normalize.py): `fix_ocr_digits`, `normalize_sku`, `parse_date`, `normalize_invoice` |
 | When does extraction get sent back for a re-read? | [`agents/extractor.py`](invoice_agents/agents/extractor.py): `extraction_errors` (the checks), `check_extraction`, `route_after_check` |
 
 **Stage 2, validation: the prompt and the criteria**
@@ -385,6 +385,6 @@ Common questions, with the file and the function or constant to search for.
 - Human review is a queue file. A production version would use LangGraph interrupts so an approver can resume
   the graph.
 - FX rates are static. In production, call a treasury FX service and store the rate used.
-- Scanned image-only PDFs are routed to a human. Add OCR (e.g. Tesseract) or a vision model.
+- No image OCR: a scanned, image-only PDF has no text layer to read, so it goes to a human as `EXTRACTION_FAILED`. Adding OCR (e.g. Tesseract) or a Grok vision model would cover it.
 - The web UI is a local, single-user tool: no login, and its tracker lives in memory, so restarting the server
   clears the cards (results stay in `output/` and the ledger). It also doesn't write `batch_summary.json`.
